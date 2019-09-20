@@ -28,3 +28,6 @@ class Flats(models.Model):
 
 	def __str__(self):
 		return '{} {} {}'.format(self.tower, self.flat, self.owner)
+
+
+def Consumption(models.Model)
