@@ -8,4 +8,5 @@ class FlatsAdmin(admin.ModelAdmin):
     search_fields = ['tower', 'flat']
 
 
-#admin.site.register(FlatsAdmin)
+admin.site.register(Consumption)
+admin.site.register(Recharge)
