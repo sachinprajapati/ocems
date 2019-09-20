@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load getFlat %}
+{% load humanize %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #dd-number{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+(function($) {
+  $.fn.inputFilter = function(inputFilter) {
+    return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+      if (inputFilter(this.value)) {
+        this.oldValue = this.value;
+        this.oldSelectionStart = this.selectionStart;
+        this.oldSelectionEnd = this.selectionEnd;
+      } else if (this.hasOwnProperty("oldValue")) {
+        this.value = this.oldValue;
+        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+      }
+    });
+  };
+}(jQuery));
+
+$(document).ready(function() {
+  // Restrict input to digits by using a regular expression filter.
+  $(".number").inputFilter(function(value) {
+    return /^\d*$/.test(value);
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+    $("#flat").bind("keyup", function(e) {
+        var code = e.keyCode || e.which;
+        if (code != '9') {
+            var tower = $("#tower").val();
+            var flat = $("#flat").val();
+            $.ajax({
+                url: "{% url 'users:getFlat' %}",
+                type: "POST", //send it through get method
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}', 
+                    tower: tower, 
+                    flat: flat
+                    },
+                success: function(data){
+                    console.log(data)
+                    $("#hidden-form").css("display","block");
+                    $("#name").val(data['owner']);
+                    $("#phone").val(data['mob']);
+                    $("#eb").val(data['Utility_KWH']);
+                    $("#dg").val(data['DG_KWH']);
+                    $("#left").val(data['Amt_Left']);
+                    $("#flat_pkey").val(data['flat_pkey']);  
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    $("#name").val('');
+                    $("#phone").val('');
+                    $("#eb").val('');
+                    $("#dg").val('');
+                    $("#left").val('');
+                    $("#flat_pkey").val('');
+                    $("#hidden-form").css("display","none");
+                }       
+            });
+        }
+    })
+});
+</script>
+
+
+
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                {% if form %}
+                  <div class="card-header text-center">Recharge ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                        <div class="card-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                            <input type="hidden" name="id" id='flat_pkey'>
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
+                                        <input type="number" id="tower" class="form-control number" name="tower" required autofocus>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label">Flat Number</label>
+                                        <input type="number" id="flat" class="form-control number" name="flat" required autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="hidden-form">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Owner</label>
+                                            <input type="text" id="name" class="form-control" name="owner" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Mobile</label>
+                                            <input type="number" id="phone" class="form-control" name="mob" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Current EB</label>
+                                            <input type="number" id="eb" class="form-control" name="eb" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Current DG</label>
+                                            <input type="number" id="dg" class="form-control" name="dg" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Amount Left</label>
+                                            <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Date</label>
+                                            <input type="date" id="date" class="form-control" name="date" required autofocus>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-block">Cosumption Report</button>
+                                </div>
+                            </div>
+                      </div>
+                            {% if errors %}
+                                {% for e in errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ e|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </form>
+                    </div>
+              {% else %}
+                  <div class="row">
+                    <div class="text-center">
+                      <h5>Owner : {{ flat.owner }}</h5>
+                      <h5>Tower : {{ flat.tower_no }}</h5>
+                      <h5>Flat : {{ flat.flat_no }}</h5>
+                    </div>
+                  </div>
+                  <table class="table table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Date & Time</th>
+                        <th scope="col">EB</th>
+                        <th scope="col">DG</th>
+                        <th scope="col">Amount Left</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for r in readings %}
+                          <tr>
+                            <th scope="row">{{ r.Record_Date }}</th>
+                            <td>{{ r.Utility_KWH }}</td>
+                            <td>{{ r.DG_KWH }}</td>
+                            <td>{{ r.Amt_Left|floatformat:2 }}</td>
+                          </tr>
+                      {% endfor %}
+                          <tr style="border-top: 2px solid #333;">
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td><strong>{{ total|floatformat:0|intcomma }}</strong></td>
+                          </tr>
+                    </tbody>
+                  </table>
+              {% endif %}
+            </div>
+        </div>
+      </div>
+    </div>
+</main>
+{% endblock %}

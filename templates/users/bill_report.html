@@ -1,0 +1,143 @@
+{% load static %}
+{% load getFlat %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>EMS Bill</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+	<script src="{% static 'js/jquery-3.3.1.slim.min.js' %}" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="{% static 'js/popper.min.js' %}" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<style type="text/css">
+		.outline {
+			border: 1px solid #333;
+			padding: 10px;
+		}
+		.bill-layout{
+			margin: 50px auto;
+		}
+		h5{
+			font-size: 14px;
+			font-weight: bold;
+		}
+		hr{
+            border: none; 
+            height: 2px; 
+            background: black;
+            margin: 5px auto;
+		}
+		p{
+			margin: 0 auto;
+		}
+		pre{
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+<section class="container">
+	<div class="bill-layout col-10">
+		<div class="outline">
+			<div class="header">
+				<div class="row">
+					<div class="oc-logo col-3">
+						<img src="{% static 'img/orange.png' %}" class="img-fluid" />
+					</div>
+					<div class="header-content  col-6">
+						<h5 class="text-center">Orange County</h5>
+						<h5 class="text-center">County Maintenance Services</h5>
+						<h5 class="text-center">GH4, Ahinsa Khand, Indirapuram, Ghaziabad, Uttar Pradesh</h5>
+						<h5 class="text-center">Monthly Consumption Report</h5>
+					</div>
+					<div class="oc-logo col-3">
+						<img src="{% static 'img/maintance.png' %}" class="img-fluid" />
+					</div>
+				</div>
+				<hr/>
+				<div class="row">
+					<div class="col-4">
+						<pre><h5>Report Date : {{ report_date|date:"d/m/y" }}</h5></pre>
+						<pre><h5>Tower No    : {{ flat.tower_no|floatformat:0 }}</h5></pre>
+						<pre><h5>Name 	    : {{ flat.owner }}</h5></pre>
+					</div>
+					<div class="col-4">
+						<pre><h5>Month/Year : {{ date|date:"F Y" }}</h5></pre>
+						<pre><h5>Flat No    : {{ flat.flat_no|floatformat:0 }}</h5></pre>
+						<pre><h5>Mobile No  : {{ flat.mob }} </h5></pre>
+					</div>
+					<div class="col-4">
+						<pre><h5>Meter No : {{ flat.meter_no }}</h5></pre>
+						<pre><h5>Email    : {{ flat.email }}</h5></pre>
+					</div>
+				</div>
+				<table class="table table-hover table-sm">
+				  <thead>
+				    <tr>
+				      <th scope="col">S No.</th>
+				      <th scope="col">Particulars</th>
+				      <th scope="col">Start Units</th>
+				      <th scope="col">Stop Units</th>
+				      <th scope="col">Consumption</th>
+				      <th scope="col">Unit Rate</th>
+				      <th scope="col">Amount</th>
+				    </tr>
+				  </thead>
+				  <tbody>
+				    <tr>
+				      <th scope="row">1</th>
+				      <td>EB</td>
+				      <td>{{ bill.Start_EB }}</td>
+				      <td>{{ bill.End_EB }}</td>
+				      <td>{{ consume.ebconsume|floatformat:2 }}</td>
+				      <td>{{ bill.Utility_Rate }}</td>
+				      <td>{{ consume.ebprice|floatformat:2 }}</td>
+				    </tr>
+				    <tr>
+				      <th scope="row">2</th>
+				      <td>DG</td>
+				      <td>{{ bill.Start_DG }}</td>
+				      <td>{{ bill.End_DG }}</td>
+						<td>{{ consume.dgconsume|floatformat:2 }}</td>
+						<td>{{ bill.DG_Rate }}</td>
+						<td>{{ consume.dgprice|floatformat:2 }}</td>
+				    </tr>
+				    <tr>
+				      <th scope="row">3</th>
+				      <td colspan="5">Maintance Charge</td>
+				      <td>{{ mf.maintance|floatformat:2 }}</td>
+				    </tr>
+				    <tr>
+				      <th scope="row">4</th>
+				      <td colspan="5">Fixed Charges(*)</td>
+				      <td>{{ mf.fixed|floatformat:2 }}</td>
+				    </tr>
+				    <tr>
+				      <th scope="row">5</th>
+				      <td colspan="5">Misc. Charges(*)</td>
+				      <td>0.0</td>
+				    </tr>
+				  </tbody>
+				</table>
+				<hr/>
+				<h6 class="text-center"><strong>(*) - These figures are inclusive of service tax as per the prevailing rates.</strong></h6>
+				<hr/>
+				<div class="row">
+					<div class="col-2">
+					</div>
+					<div class="col-9">
+						<h5><pre><strong class="float-right"> Total Use		:	{{ total|floatformat:2 }}</strong></pre></h5>
+						<h5><pre><strong class="float-right">Opening Balance		:	{{ bill.Opening_Amt|floatformat:2 }}</strong></pre></h5>
+						<h5><pre><strong class="float-right">Recharge in the Month	:	{{ recharge }}</strong></pre></h5>
+						<h5><pre><strong class="float-right">Adjustment(+/-)  :  1300	Curent Balance		:	{{ bill.Closing_Amt|floatformat:2 }}</strong></pre></h5>
+					</div>
+				</div>
+				<hr/>
+				<div>
+					<p>E&OE. This is a computer generated report and any disputes regarding the same shall be registered within 7 days of generation.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<script src="{% static '/js/bootstrap.min.js' %}" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
