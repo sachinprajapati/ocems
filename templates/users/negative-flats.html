@@ -18,13 +18,13 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {% for f in flats %}
+                      {% for c in object_list %}
                           <tr>
-                            <th scope="row">{{ f.tower_no|floatformat:0 }}</th>
-                            <td>{{ f.flat_no|floatformat:0  }}</td>
-                            <td>{{ f.owner  }}</td>
-                            <td>{{ f.mob  }}</td>
-                            <td>{{ f.amt_left|floatformat:2  }}</td>
+                            <th scope="row">{{ c.flat.tower }}</th>
+                            <td>{{ c.flat.flat }}</td>
+                            <td>{{ c.flat.owner  }}</td>
+                            <td>{{ c.flat.phone }}</td>
+                            <td>{{ c.amt_left|floatformat:0 }}</td>
                           </tr>
                       {% endfor %}
                     </tbody>

@@ -68,3 +68,4 @@ class Recharge(models.Model):
 	chq_dd = models.PositiveIntegerField(null=True, blank=True)
 	eb = models.FloatField(default=0, verbose_name="Utility KWH")
 	dg = models.FloatField(default=0, verbose_name="DG KWH")
+	dt = models.DateTimeField()

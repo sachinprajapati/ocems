@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-{% load getFlat %}
-{% load humanize %}
 
 {% block css %}
 <style type="text/css">
@@ -159,7 +157,7 @@ $(document).ready(function(){
                       <form action="" method="post">
                           {% csrf_token %}
                           <div class="form-group row">
-                              <label for="email_address" class="col-md-4 col-form-label text-md-right">Date</label>
+                              <label for="email_address" class="col-md-4 col-form-label text-md-right">{{ args.type|title }}</label>
                               <div class="col-md-6">
                                   <input id="date" class="form-control" {% for i,j in args.items %} {{ i }}={{ j }} {% endfor %} required autofocus>
                               </div>
@@ -201,13 +199,11 @@ $(document).ready(function(){
                       {% for r in recharge %}
                           <tr>
                             <th scope="row">{{ r.Recharge_Date }}</th>
-                            {% with flat=r.Flat_Pkey|getFlatDetail%}
-                                <td>{{ flat.owner }}</td>
-                                <td>{{ flat.tower_no|floatformat:0 }}</td>
-                                <td>{{ flat.flat_no|floatformat:0 }}</td>
-                            {% endwith %}
+                            <td>{{ flat.owner }}</td>
+                            <td>{{ flat.tower_no|floatformat:0 }}</td>
+                            <td>{{ flat.flat_no|floatformat:0 }}</td>
                             <td>{{ r.Rpt_TYPE }}</td>
-                            <td>{{ r.Recharge_Amt|floatformat:0|intcomma }}</td>
+                            <td>{{ r.Recharge_Amt|floatformat:0 }}</td>
                           </tr>
                       {% endfor %}
                           <tr style="border-top: 2px solid #333;">
@@ -216,7 +212,7 @@ $(document).ready(function(){
                               <td></td>
                               <td></td>
                               <td></td>
-                              <td><strong>{{ total|floatformat:0|intcomma }}</strong></td>
+                              <td><strong>{{ total|floatformat:0 }}</strong></td>
                           </tr>
                     </tbody>
                   </table>

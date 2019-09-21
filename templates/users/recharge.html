@@ -10,14 +10,14 @@
 
 {% block content %}
 
-<script type="text/javascript">
+<!-- <script type="text/javascript">
 $(document).ready(function() {
   // Restrict input to digits by using a regular expression filter.
   $("#submit-form").click(function() {
     location.reload();
   });
 });
-</script>
+</script> -->
 <script type="text/javascript">
 (function($) {
   $.fn.inputFilter = function(inputFilter) {
@@ -57,14 +57,13 @@ $(document).ready(function(){
                     flat: flat
                     },
                 success: function(data){
-                    console.log(data)
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
                     $("#phone").val(data['phone']);
-                    $("#eb").val(data['Utility_KWH']);
-                    $("#dg").val(data['DG_KWH']);
-                    $("#left").val(data['Amt_Left']);
-                    $("#flat_pkey").val(data['flat_pkey']);  
+                    $("#eb").val(data['eb']);
+                    $("#dg").val(data['dg']);
+                    $("#left").val(data['amt_left']);
+                    $("#flat_pkey").val(data['id']);  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -104,10 +103,10 @@ $(document).ready(function() {
                 <div class="card">
                     <div class="card-header text-center">Recharge ( OC Maintance )<i class="fas fa-cloud"></i></div>
                         <div class="card-body">
-                        <form action="" method="post" target="_blank">
+                        <form action="" method="post">
                             {% csrf_token %}
                             <div class="row">
-                            <input type="hidden" name="id" id='flat_pkey'>
+                            <input type="hidden" name="flat" id='flat_pkey'>
                                 <div class="col-4">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
@@ -159,8 +158,8 @@ $(document).ready(function() {
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-form-label">Recharge Type</label>
                                             <select class="form-control" name="type" id="recharge-type">
-                                                <option value="Cash">Cash</option>
-                                                <option value="Bank">Cheque</option>
+                                                <option value="1">Cash</option>
+                                                <option value="2">Cheque</option>
                                             </select>
                                         </div>
                                     </div>
@@ -198,4 +197,18 @@ $(document).ready(function() {
         </div>
     </div>
 </main>
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
 {% endblock %}

@@ -59,11 +59,11 @@ $(document).ready(function(){
                     console.log(data)
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
-                    $("#phone").val(data['mob']);
-                    $("#eb").val(data['Utility_KWH']);
-                    $("#dg").val(data['DG_KWH']);
-                    $("#left").val(data['Amt_Left']);
-                    $("#flat_pkey").val(data['flat_pkey']);  
+                    $("#phone").val(data['phone']);
+                    $("#eb").val(data['eb']);
+                    $("#dg").val(data['dg']);
+                    $("#left").val(data['amt_left']);
+                    $("#flat_pkey").val(data['id']);  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
