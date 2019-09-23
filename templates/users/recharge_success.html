@@ -299,25 +299,22 @@ Email Id: ocrwa@yahoo.in
                                         <table class="invoice">
                                             <tbody><tr>
                                                 <td>
-                                                	Owner	:	{{ data.owner }}<span style="float: right;">Meter Serial : {{ data.meter_no }}</span><br>
-                                                	Tower	:	{{ data.tower_no }}<span style="float: right;">Flat : {{ data.flat_no }}</span><br>
-                                                	EB	:	{{ bal.Utility_KWH }}<span style="float: right;">DG : {{ bal.DG_KWH }}</span><br>
+                                                	Owner	:	{{ flat.owner }}<span style="float: right;">Meter Serial : {{ flat.meter_sr }}</span><br>
+                                                	Tower	:	{{ flat.tower }}<span style="float: right;">Flat : {{ flat.flat }}</span><br>
+                                                	EB	:	{{ flat.consumption.eb }}<span style="float: right;">DG : {{ flat.consumption.dg }}</span><br>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>
                                                     <table class="invoice-items" cellpadding="0" cellspacing="0">
-                                                        <tbody><tr>
-                                                            <td>Previous Amount</td>
-                                                            <td class="alignright">{{ bal.Amt_Left|floatformat:2 }}</td>
-                                                        </tr>
+                                                        <tbody>
                                                         <tr>
                                                             <td>Recharge Amt(Rs) :</td>
                                                             <td class="alignright">{{ recharge_amt }}</td>
                                                         </tr>
                                                         <tr class="total">
                                                             <td class="alignright" width="80%">Total : </td>
-                                                            <td class="alignright">&nbsp;{{ total|floatformat:2 }}</td>
+                                                            <td class="alignright">&nbsp;{{ flat.consumption.amt_left|floatformat:2 }}</td>
                                                         </tr>
                                                     </tbody></table>
                                                 </td>

@@ -22,8 +22,8 @@
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Flats
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="">Flat Recharge Report</a>
-          <a class="dropdown-item" href="">Flat Hourly Report</a>
+          <a class="dropdown-item" href="{% url 'users:flat_recharge_report' %}">Flat Recharge Report</a>
+          <a class="dropdown-item" href="{% url 'users:flat_hourly_report' %}">Flat Hourly Report</a>
           <a class="dropdown-item" href="{% url 'users:flat_bill' %}">Flat Bill</a>
           <a class="dropdown-item" href="{% url 'users:negative_balance_flats' %}">Negative Balance Flats</a>
         </div>

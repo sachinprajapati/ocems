@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-{% load getFlat %}
-{% load humanize %}
 
 {% block css %}
 <style type="text/css">
@@ -55,11 +53,11 @@ $(document).ready(function(){
                     console.log(data)
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
-                    $("#phone").val(data['mob']);
-                    $("#eb").val(data['Utility_KWH']);
-                    $("#dg").val(data['DG_KWH']);
-                    $("#left").val(data['Amt_Left']);
-                    $("#flat_pkey").val(data['flat_pkey']);  
+                    $("#phone").val(data['phone']);
+                    $("#eb").val(data['eb']);
+                    $("#dg").val(data['dg']);
+                    $("#left").val(data['amt_left']);
+                    $("#flat_pkey").val(data['flat']); 
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -138,10 +136,18 @@ $(document).ready(function(){
                                             <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
                                         </div>
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Date</label>
-                                            <input type="date" id="date" class="form-control" name="date" required autofocus>
+                                            <label for="email_address" class="col-form-label">Start Date</label>
+                                            <input type="date" id="date" class="form-control" name="start-date" required autofocus>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">End Date</label>
+                                            <input type="date" id="date" class="form-control" name="end-date" required autofocus>
                                         </div>
                                     </div>
                                 </div>
@@ -160,13 +166,18 @@ $(document).ready(function(){
                         </form>
                     </div>
               {% else %}
-                  <div class="row">
-                    <div class="text-center">
-                      <h5>Owner : {{ flat.owner }}</h5>
-                      <h5>Tower : {{ flat.tower_no }}</h5>
-                      <h5>Flat : {{ flat.flat_no }}</h5>
+                <div class="row">
+                    <div class="col-1"></div>
+                    <div class="col-4">
+                        <h4 class="text-center">Owner : {{ flat.owner }}</h4>
                     </div>
-                  </div>
+                    <div class="col-3">
+                        <h4 class="text-center">Tower : {{ flat.tower }}</h4>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-center">Flat : {{ flat.flat }}</h4>
+                    </div>
+                </div>
                   <table class="table table-hover table-sm">
                     <thead>
                       <tr>
@@ -179,10 +190,10 @@ $(document).ready(function(){
                     <tbody>
                       {% for r in readings %}
                           <tr>
-                            <th scope="row">{{ r.Record_Date }}</th>
-                            <td>{{ r.Utility_KWH }}</td>
-                            <td>{{ r.DG_KWH }}</td>
-                            <td>{{ r.Amt_Left|floatformat:2 }}</td>
+                            <th scope="row">{{ r.dt|date:'Y-m-d g:i a' }}</th>
+                            <td>{{ r.eb|floatformat:2 }}</td>
+                            <td>{{ r.dg|floatformat:2 }}</td>
+                            <td>{{ r.amt_left|floatformat:2 }}</td>
                           </tr>
                       {% endfor %}
                           <tr style="border-top: 2px solid #333;">
@@ -191,7 +202,7 @@ $(document).ready(function(){
                               <td></td>
                               <td></td>
                               <td></td>
-                              <td><strong>{{ total|floatformat:0|intcomma }}</strong></td>
+                              <td><strong>{{ total|floatformat:0 }}</strong></td>
                           </tr>
                     </tbody>
                   </table>

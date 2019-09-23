@@ -53,11 +53,11 @@ $(document).ready(function(){
                     console.log(data)
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
-                    $("#phone").val(data['mob']);
-                    $("#eb").val(data['Utility_KWH']);
-                    $("#dg").val(data['DG_KWH']);
-                    $("#left").val(data['Amt_Left']);
-                    $("#flat_pkey").val(data['flat_pkey']);  
+                    $("#phone").val(data['phone']);
+                    $("#eb").val(data['eb']);
+                    $("#dg").val(data['dg']);
+                    $("#left").val(data['amt_left']);
+                    $("#flat_pkey").val(data['flat']);  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -198,12 +198,12 @@ $(document).ready(function(){
                     <tbody>
                       {% for r in recharge %}
                           <tr>
-                            <th scope="row">{{ r.Recharge_Date }}</th>
-                            <td>{{ flat.owner }}</td>
-                            <td>{{ flat.tower_no|floatformat:0 }}</td>
-                            <td>{{ flat.flat_no|floatformat:0 }}</td>
-                            <td>{{ r.Rpt_TYPE }}</td>
-                            <td>{{ r.Recharge_Amt|floatformat:0 }}</td>
+                            <th scope="row">{{ r.dt }}</th>
+                            <td>{{ r.flat.owner }}</td>
+                            <td>{{ r.flat.tower|floatformat:0 }}</td>
+                            <td>{{ r.flat.flat|floatformat:0 }}</td>
+                            <td>{{ r.get_Type_display }}</td>
+                            <td>{{ r.recharge|floatformat:0 }}</td>
                           </tr>
                       {% endfor %}
                           <tr style="border-top: 2px solid #333;">
@@ -212,7 +212,7 @@ $(document).ready(function(){
                               <td></td>
                               <td></td>
                               <td></td>
-                              <td><strong>{{ total|floatformat:0 }}</strong></td>
+                              <td><strong>{{ total.recharge__sum|floatformat:0 }}</strong></td>
                           </tr>
                     </tbody>
                   </table>

@@ -7,7 +7,10 @@ from django.core import serializers
 from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+from django.db.models import Sum
 from django.utils import timezone
+
+from datetime import datetime, timedelta
 
 from .models import *
 from .forms import RechargeForm
@@ -33,16 +36,23 @@ def Dashboard(request):
 
 @login_required
 def RechargeView(request):
+	context = {}
+	context['errors'] = []
 	form = RechargeForm(request.POST or None)
 	if request.method == "POST":
-		print(dt_now())
 		if form.is_valid():
-			print(form)
-		else:
-			print(form.errors)
-	context = {
-		"form" : form,
-	}
+			data = request.POST
+			flat = Flats.objects.get(id=data['flat'])
+			recharge = int(data['recharge'])
+			if form.save():
+				context = {
+						"flat": flat,
+						'recharge_amt' : recharge,
+					}
+				return render(request, "users/recharge_success.html", context)
+			else:
+				context['errors'].append("Recharge Failed")
+	context['form'] = form
 	return render(request, 'users/recharge.html', context)
 
 @login_required()
@@ -81,6 +91,19 @@ class NegativeBalanceFlats(ListView):
 @login_required()
 def getBillView(request):
 	context = {}
+	if request.method == "POST":
+		data = request.POST
+		if data.get('flat') and data.get('month'):
+			flat = get_object_or_404(Flats, pk=data["flat"])
+			date = datetime.strptime(data['month'], "%Y-%m").date()
+			bill = MonthlyBill.objects.get(month=date.month, year=date.year, flat=flat)
+			context = {
+				"bill": bill,
+				"date": date,
+				"report_date": datetime.today(),
+				"flat": flat,
+			}
+			return render(request, 'users/bill_report.html', context)
 	return render(request, 'users/getBill.html', context)
 
 
@@ -89,6 +112,21 @@ def DailyRechargeReport(request):
 	context = {
 		"args": {"type": "date", "name": "date"}
 	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get('date'):
+			try:
+				date = datetime.strptime(data['date'], "%Y-%m-%d").date()
+				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year, dt__day=date.day)
+				total = data.aggregate(Sum('recharge'))
+				context = {
+					"recharge" : data,
+					"total": total,
+				}
+			except Exception as e:
+				print(e)
+				context['error'] = e
+	print(context)
 	return render(request, 'users/rechargehistory.html', context)
 
 
@@ -97,4 +135,57 @@ def MonthlyRechargeReport(request):
 	context = {
 		"args": {"type": "month", "name": "month"}
 	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get('month'):
+			try:
+				date = datetime.strptime(data['month'], "%Y-%m").date()
+				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year)
+				total = data.aggregate(Sum('recharge'))
+				context = {
+					"recharge" : data,
+					"total": total,
+				}
+			except Exception as e:
+				context['error'] = e
 	return render(request, 'users/rechargehistory.html', context)
+
+
+@login_required()
+def FlatRechargeReport(request):
+	context = {
+		"args": {"type": "month", "name": "month"},
+		"flatrecharge": True,
+	}
+	if request.method == "POST":
+		flat_pkey = request.POST.get("id", "")
+		print("flat_pkey is ", flat_pkey)
+		if flat_pkey:
+			try:
+				recharge = Recharge.objects.filter(flat__id=flat_pkey)
+				total = recharge.aggregate(Sum('recharge'))
+				context = {
+					"recharge": recharge,
+					"total": total,
+				}
+			except Exception as e:
+				print(e)
+	return render(request, 'users/rechargehistory.html', context)
+
+
+@login_required()
+def FlatHourlyReport(request):
+	context = {
+		"form" : True,
+	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get("start-date") and data.get("end-date") and data.get("id"):
+			sdate = datetime.strptime(data['start-date'], "%Y-%m-%d").date()
+			edate = datetime.strptime(data['end-date'], "%Y-%m-%d").date() + timedelta(days=1)
+			readings = Reading.objects.filter(flat__id=data['id'], dt__range=(sdate, edate)).order_by('dt')
+			context = {
+				"readings" : readings,
+				"flat": Flats.objects.get(id=data['id'])
+			}
+	return render(request, 'users/flats-hourly-report.html', context)

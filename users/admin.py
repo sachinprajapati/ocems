@@ -10,3 +10,6 @@ class FlatsAdmin(admin.ModelAdmin):
 
 admin.site.register(Consumption)
 admin.site.register(Recharge)
+admin.site.register(MonthlyBill)
+admin.site.register(Maintance)
+admin.site.register(Reading)
