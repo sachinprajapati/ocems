@@ -11,8 +11,11 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
-import pyodbc
 
+try:
+    import pyodbc
+except ImportError:
+    print("pyodbc not found")
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -86,13 +89,16 @@ DATABASES = {
 }
 
 
-conn = pyodbc.connect(
+try:
+    conn = pyodbc.connect(
     "Driver={SQL Server};"
     #"Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
     "Server=SACHIN-PC;"
     "Database=EMS;"
     "Trusted_Connection=yes;"
-)
+    )
+except Exception as e:
+    print(e)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
