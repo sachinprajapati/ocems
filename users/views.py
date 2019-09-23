@@ -48,6 +48,7 @@ def RechargeView(request):
 				context = {
 						"flat": flat,
 						'recharge_amt' : recharge,
+						"prevamt" : flat.consumption.amt_left-recharge,
 					}
 				return render(request, "users/recharge_success.html", context)
 			else:

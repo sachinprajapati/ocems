@@ -160,3 +160,15 @@ class Reading(models.Model):
 
 	def __str__(self):
 		return '{} {}'.format(self.flat, self.amt_left)
+
+
+class DeductionAmt(models.Model):
+	tower = models.PositiveIntegerField()
+	tower_name = models.CharField(max_length=10)
+	eb_price = models.FloatField(verbose_name="Utility Rate")
+	dg_price = models.FloatField(verbose_name="DG Rate")
+	maintance = models.FloatField()
+	fixed_amt = models.FloatField()
+
+	def __str__(self):
+		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)

@@ -99,6 +99,7 @@ try:
     )
 except Exception as e:
     print(e)
+    conn = None
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
