@@ -1,6 +1,9 @@
 import chardet
 import pandas as pd
 import sqlite3
+import pytz
+
+local = pytz.timezone('Asia/Kolkata')
 
 conn = sqlite3.connect("db.sqlite3")
 
@@ -22,6 +25,13 @@ d.columns = ['datetime', 'flat_id', 'eb',
        'reset_dt', 'meter_change_dt',
        'last_modified', 'last_deduction_dt', 'deduction_status',
        'ng_eb', 'ng_dg', 'ng_dt']
+
+
+d['datetime'] = pd.to_datetime(d['datetime'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
+
+d['ng_dt'] = pd.to_datetime(d['ng_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
+
+d['last_deduction_dt'] = pd.to_datetime(d['last_deduction_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
 
 d.insert(0, 'id', range(1, 948))
 

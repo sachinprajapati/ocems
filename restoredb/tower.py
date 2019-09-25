@@ -2,9 +2,9 @@ import chardet
 import pandas as pd
 import sqlite3
 
-#conn = sqlite3.connect("db.sqlite3")
+conn = sqlite3.connect("db.sqlite3")
 
-#curr = conn.cursor()
+curr = conn.cursor()
 
 
 with open("TblTower.csv", 'rb') as f:
@@ -23,6 +23,6 @@ d.index.name = 'id'
 d.index += 1
 
 
-#d.to_sql('users_recharge', conn, if_exists="append")
+d.to_sql('users_deductionamt', conn, if_exists="append")
 
-#conn.commit()
+conn.commit()

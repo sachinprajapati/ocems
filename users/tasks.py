@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from datetime import timedelta, date, datetime
 from collections import namedtuple
+from django.db import transaction
 
 from celery.task import periodic_task
 
@@ -19,13 +20,28 @@ def ReadEbAndDG():
 	for i in c:
 		nc = Consumptions(*i)
 		try:
-			cos = Consumption.objects.get(id=nc.flat_id)
-			cos.eb = i.eb
-			cos.dg = i.dg
-			if cos.deduction_status == "N":
-				cos.deduction_status = 1
-			elif cos.deduction_status == "Y":
-				cos.deduction_status = 2
-			cos.save()
+			with transaction.atomic():
+				flat = Flats.objects.get(id=nc.flat_id)
+				cons = Consumption.objects.get(flat=flat)
+				da = DeductionAmt.objects.get(tower=flat.tower)
+				last_reading = Reading.objects.filter(flat=flat).order_by('-dt')[0]
+				eb_charge = (nc.eb-last_reading.eb)*da.eb_price
+				dg_charge = (nc.dg-last_reading.dg)*da.dg_price
+				amt_left = cons.amt_left-(eb_charge+dg_charge)
+				r = Reading(flat=flat, eb=nc.eb, dg=nc.dg, eb_price=da.eb_price, dg_price=da.dg_price, mrate=da.maintance, famt=da.fixed_amt, amt_left=amt_left)
+				r.save()
+				cons.eb = i.eb
+				cons.dg = i.dg
+				cons.amt_left= amt_left
+				if cons.deduction_status == "N":
+					cons.deduction_status = 1
+				elif cons.deduction_status == "Y":
+					cons.deduction_status = 2
+				cons.save()
 		except Exception as e:
 			print(e)
+
+
+@periodic_task(run_every=timedelta(seconds=30))
+def MaintanceAndFixed():
+	pass

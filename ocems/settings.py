@@ -29,7 +29,7 @@ SECRET_KEY = 'hhgl!$**6udd_t2n4j38&mp7s^oug$40$%c361pgr-m^uv0p3c'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -92,14 +92,15 @@ DATABASES = {
 try:
     conn = pyodbc.connect(
     "Driver={SQL Server};"
-    #"Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
-    "Server=SACHIN-PC;"
+    "Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
+    #"Server=SACHIN-PC;"
     "Database=EMS;"
     "Trusted_Connection=yes;"
     )
 except Exception as e:
     print(e)
     conn = None
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

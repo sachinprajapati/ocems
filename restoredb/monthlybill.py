@@ -1,6 +1,9 @@
 import chardet
 import pandas as pd
 import sqlite3
+import pytz
+
+local = pytz.timezone('Asia/Kolkata')
 
 conn = sqlite3.connect("db.sqlite3")
 
@@ -21,6 +24,9 @@ d.index.name = 'id'
 
 d.index += 1
 
+d['start_dt'] = pd.to_datetime(d['start_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
+
+d['end_dt'] = pd.to_datetime(d['end_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
 
 d.to_sql('users_monthlybill', conn, if_exists="append")
 

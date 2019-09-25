@@ -156,7 +156,7 @@ class Reading(models.Model):
 	mrate = models.FloatField(verbose_name=_("Maintance Rate"))
 	famt = models.FloatField(verbose_name=_("Fixed Amount"))
 	amt_left = models.FloatField()
-	dt = models.DateTimeField()
+	dt = models.DateTimeField(auto_now_add=False, auto_now=True)
 
 	def __str__(self):
 		return '{} {}'.format(self.flat, self.amt_left)
