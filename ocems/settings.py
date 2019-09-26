@@ -92,8 +92,8 @@ DATABASES = {
 try:
     conn = pyodbc.connect(
     "Driver={SQL Server};"
-    "Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
-    #"Server=SACHIN-PC;"
+    #"Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
+    "Server=SACHIN-PC;"
     "Database=EMS;"
     "Trusted_Connection=yes;"
     )

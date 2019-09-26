@@ -7,10 +7,14 @@ class FlatsAdmin(admin.ModelAdmin):
     ordering = ['tower', 'flat']
     search_fields = ['tower', 'flat']
 
+@admin.register(Reading)
+class ReadingAdmin(admin.ModelAdmin):
+    ordering = ['-dt']
+    search_fields = ['flat']
+
 
 admin.site.register(Consumption)
 admin.site.register(Recharge)
 admin.site.register(MonthlyBill)
 admin.site.register(Maintance)
-admin.site.register(Reading)
 admin.site.register(DeductionAmt)
