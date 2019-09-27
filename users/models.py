@@ -40,14 +40,32 @@ class Flats(models.Model):
 	def __str__(self):
 		return '{} {} {}'.format(self.tower, self.flat, self.owner)
 
+	def getMaintance(self):
+		if self.tower == 17:
+			return 0
+		m = DeductionAmt.objects.get(tower=self.tower).maintance
+		return (float(m)*self.flat_size)*(12/365)
+
+	def getFixed(self):
+		if self.tower == 17:
+			return float(self.fixed_amt)*(12/365)
+		m = DeductionAmt.objects.get(tower=self.tower).fixed_amt
+		return float(m)*(12/365)
+
+	def getMRate(self):
+		if self.tower == 17:
+			return 0
+		return float(DeductionAmt.objects.get(tower=self.tower).maintance)
+
+	def getMFTotal(self):
+		return self.getMaintance()+self.getFixed()
+
 
 class Consumption(models.Model):
 	datetime = models.DateTimeField()
 	flat = models.OneToOneField(Flats, on_delete=models.CASCADE)
 	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
 	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
-	ref_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Ref Utility KWH")
-	ref_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Ref DG KWH")
 	start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start Utility KWH")
 	start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start DG KWH")
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
@@ -116,11 +134,11 @@ class MonthlyBill(models.Model):
 		return self.dg_price*self.get_dg()
 
 	def get_TotalMaintance(self):
-		m = Maintance.objects.filter(flat=self.flat, Date__month=self.month, Date__year=self.year).aggregate(Sum('mcharge'))
+		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
 		return m['mcharge__sum']
 
 	def get_TotalFixed(self):
-		f = Maintance.objects.filter(flat=self.flat, Date__month=self.month, Date__year=self.year).aggregate(Sum('famt'))
+		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))
 		return f['famt__sum']
 
 	def get_TotalUsed(self):
@@ -129,14 +147,14 @@ class MonthlyBill(models.Model):
 
 	def get_RechargeInMonth(self):
 		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge'))
+		if not r['recharge__sum']:
+			r['recharge__sum'] = 0
 		return r['recharge__sum']
 
 class Maintance(models.Model):
-	sno = models.PositiveIntegerField()
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
-	Date = models.DateTimeField()
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
 	mrate = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Rate"))
-	flat_size = models.PositiveIntegerField()
 	mcharge = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Charges"))
 	famt = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Fixed Amount"))
 	field_amt = models.DecimalField(max_digits=19, decimal_places=4)
@@ -149,21 +167,17 @@ class Reading(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
 	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
 	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
-	ref_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Ref Utility KWH")
-	ref_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Ref DG KWH")
 	eb_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility Rate")
 	dg_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG Rate")
-	mrate = models.DecimalField(max_digits=19, decimal_places=4, verbose_name=_("Maintance Rate"))
-	famt = models.DecimalField(max_digits=19, decimal_places=4, verbose_name=_("Fixed Amount"))
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4)
-	dt = models.DateTimeField(auto_now_add=False, auto_now=True)
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
 
 	def __str__(self):
 		return '{} {}'.format(self.flat, self.amt_left)
 
 
 class DeductionAmt(models.Model):
-	tower = models.PositiveIntegerField()
+	tower = models.PositiveIntegerField(unique=True)
 	tower_name = models.CharField(max_length=10)
 	eb_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility Rate")
 	dg_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG Rate")
