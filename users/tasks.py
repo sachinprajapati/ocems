@@ -2,29 +2,37 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from celery.task.schedules import crontab
 from datetime import timedelta, date, datetime
+from django.utils import timezone
 from collections import namedtuple
 from django.db import transaction
 
 from celery.task import periodic_task
 
 from .models import *
-#from ocems.settings import conn
+from ocems.settings import conn
 
-#cur = conn.cursor()
+cur = conn.cursor()
 
 @periodic_task(run_every=timedelta(seconds=30))
 def ReadEbAndDG():
 	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
-	#c = cur.execute("SELECT flat_pkey, Utility_KWH as eb, DG_KWH as dg FROM [EMS].[dbo].[TblConsumption]")
-	#c = c.fetchall()
-	c = [(728, 	108170.10, 	8517.8020)]
+	c = cur.execute("SELECT flat_pkey, Utility_KWH as eb, DG_KWH as dg FROM [EMS].[dbo].[TblConsumption]")
+	c = c.fetchall()
 	l = []
 	for i in c:
 		cp = Consumptions(*i)
-		flat = Flats.objects.get(id=cp.flat_id)
-		cons = Consumption.objects.get(flat=flat)
-		if cp.eb != cons.eb and cp.dg != cons.dg:
-			print("flat is ", flat, cons.dg, cp.dg, " dg ")
+		cons = Consumption.objects.get(flat__id=cp.flat_id)
+		da = DeductionAmt.objects.get(tower=cons.flat.tower)
+		if cp.eb > float(cons.eb) or cp.dg > float(cons.dg):
+			consumed = ((cp.eb-float(cons.eb))*float(da.eb_price))+((cp.dg-float(cons.dg))*float(da.dg_price))
+			cons.amt_left = float(cons.amt_left)-consumed
+			cons.ng_eb = cons.eb
+			cons.ng_dg = cons.dg
+			cons.eb = i.eb
+			cons.dg = i.dg
+			cons.last_deduction_dt = timezone.now()
+			l.append(cons)
+	Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
 
 @periodic_task(run_every=timedelta(minutes=0))
