@@ -157,7 +157,6 @@ class Maintance(models.Model):
 	mrate = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Rate"))
 	mcharge = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Charges"))
 	famt = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Fixed Amount"))
-	field_amt = models.DecimalField(max_digits=19, decimal_places=4)
 
 	def __str__(self):
 		return '{}'.format(self.flat)
