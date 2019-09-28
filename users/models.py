@@ -89,7 +89,6 @@ RECHARGE_TYPE = (
 )
 
 class Recharge(models.Model):
-	sno = models.PositiveIntegerField(null=True, blank=True)
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
 	recharge = models.PositiveIntegerField()
@@ -103,7 +102,6 @@ class Recharge(models.Model):
 		return '{} recharge {}'.format(self.flat, self.recharge)
 
 class MonthlyBill(models.Model):
-	Bill_Pkey = models.PositiveIntegerField()
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
 	month = models.PositiveIntegerField()
 	year = models.PositiveIntegerField()

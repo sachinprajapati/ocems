@@ -16,9 +16,9 @@ with open("TblRecharge.csv", 'rb') as f:
 
 d = pd.read_csv('TblRecharge.csv', encoding=result['encoding'])
 
-d.drop(columns=['Recharge_No', 'RPT_Chq_DD', 'Chq_DD_Date', 'UsrName', 'Recharge_TYPE'], inplace=True)
+d.drop(columns=['SNo', 'Recharge_No', 'RPT_Chq_DD', 'Chq_DD_Date', 'UsrName', 'Recharge_TYPE'], inplace=True)
 
-d.columns = ['sno', 'dt', 'flat_id', 'amt_left', 'recharge',
+d.columns = ['dt', 'flat_id', 'amt_left', 'recharge',
        'Type', 'chq_dd', 'eb', 'dg']
 
 d.index.name = 'id'
