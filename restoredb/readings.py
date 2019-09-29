@@ -16,11 +16,9 @@ with open("TblReadings.csv", 'rb') as f:
 
 d = pd.read_csv('TblReadings.csv', encoding=result['encoding'])
 
-d.drop(columns=['Recharge_Amt', 'Field_Amt', 'Status'], inplace=True)
+d.drop(columns=['Recharge_Amt', 'Field_Amt', 'Status', 'Ref_Utility_KWH', 'Ref_DG_KWH', 'Maintenance_Rate', 'Fixed_Amt'], inplace=True)
 
-d.columns = ['dt', 'flat_id', 'eb', 'dg', 'ref_eb',
-       'ref_dg', 'amt_left', 'eb_price', 'dg_price',
-       'mrate', 'famt']
+d.columns = ['dt', 'flat_id', 'eb', 'dg', 'amt_left', 'eb_price', 'dg_price']
 
 d.index.name = 'id'
 
