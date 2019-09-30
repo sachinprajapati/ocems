@@ -11,7 +11,26 @@ from celery.task import periodic_task
 from .models import *
 from ocems.settings import conn
 
+import socket
+
 #cur = conn.cursor()
+
+def recvall(sock):
+    BUFF_SIZE = 4096 # 4 KiB
+    data = b''
+    while True:
+        part = sock.recv(BUFF_SIZE)
+        data += part
+        if len(part) < BUFF_SIZE:
+            # either 0 or end of data
+            break
+    return data
+
+def getTCPData():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(('192.168.1.5', 5000))
+    response = recvall(client)
+    return json.loads(response.decode('utf-8'))
 
 @periodic_task(run_every=crontab(minute="*"))
 def ReadEbAndDG():
