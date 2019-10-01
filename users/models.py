@@ -62,7 +62,7 @@ class Flats(models.Model):
 
 
 class Consumption(models.Model):
-	datetime = models.DateTimeField()
+	dt = models.DateTimeField()
 	flat = models.OneToOneField(Flats, on_delete=models.CASCADE)
 	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
 	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")

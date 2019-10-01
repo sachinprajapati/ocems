@@ -11,29 +11,50 @@ from celery.task import periodic_task
 from .models import *
 from ocems.settings import conn
 
+import urllib.request
+import json
+
 #cur = conn.cursor()
+
+def getFlatData():
+	try:
+		response = urllib.request.urlopen('http://192.168.1.5:5000/hello/h', timeout=2)
+		html = response.read()
+		return json.loads(html)
+	except Exception as e:
+		print(e)
+		return False
+		
+
 
 @periodic_task(run_every=crontab(minute="*"))
 def ReadEbAndDG():
 	print("ReadEbAndDG")
-	# Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
+	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
 	# c = cur.execute("SELECT flat_pkey, Utility_KWH as eb, DG_KWH as dg FROM [EMS].[dbo].[TblConsumption]")
 	# c = c.fetchall()
-	# l = []
-	# for i in c:
-	# 	cp = Consumptions(*i)
-	# 	cons = Consumption.objects.get(flat__id=cp.flat_id)
-	# 	da = DeductionAmt.objects.get(tower=cons.flat.tower)
-	# 	if cp.eb > float(cons.eb) or cp.dg > float(cons.dg):
-	# 		consumed = ((cp.eb-float(cons.ng_eb))*float(da.eb_price))+((cp.dg-float(cons.ng_dg))*float(da.dg_price))
-	# 		cons.amt_left = float(cons.amt_left)-consumed
-	# 		cons.ng_eb = cons.eb
-	# 		cons.ng_dg = cons.dg
-	# 		cons.eb = i.eb
-	# 		cons.dg = i.dg
-	# 		cons.last_deduction_dt = timezone.now()
-	# 		l.append(cons)
-	# Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
+	c = getFlatData()
+	if c:
+		l = []
+		for i in c["data"]:
+			cp = Consumptions(**i)
+			cons = Consumption.objects.get(flat__id=cp.flat_id)
+			da = DeductionAmt.objects.get(tower=cons.flat.tower)
+			if cp.eb > float(cons.eb) or cp.dg > float(cons.dg):
+				print("flat",cons.flat, "eb", cp.eb, float(cons.eb),da.eb_price,"dg", cp.dg, float(cons.dg), da.dg_price)
+				c_eb = (cp.eb-float(cons.ng_eb))*float(da.eb_price)
+				c_dg = (cp.dg-float(cons.ng_dg))*float(da.dg_price)
+				consumed = c_eb+c_dg
+				cons.amt_left = float(cons.amt_left)-consumed
+				print("eb", c_eb,"dg", c_dg,"consumed ", consumed)
+				cons.ng_eb = cons.eb
+				cons.ng_dg = cons.dg
+				cons.eb = cp.eb
+				cons.dg = cp.dg
+				cons.last_deduction_dt = timezone.now()
+				cons.save()
+				l.append(cons)
+		#Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
 
 @periodic_task(run_every=crontab(hour="*", minute=0))
