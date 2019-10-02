@@ -54,8 +54,8 @@ $(document).ready(function(){
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
                     $("#phone").val(data['phone']);
-                    $("#eb").val(data['eb']);
-                    $("#dg").val(data['dg']);
+                    $("#eb").val(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
+                    $("#dg").val(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
                     $("#left").val(data['amt_left']);
                     $("#flat_pkey").val(data['flat']); 
                 },

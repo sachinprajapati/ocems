@@ -12,6 +12,7 @@ urlpatterns = [
 	path('flat-recharge-report/', FlatRechargeReport, name="flat_recharge_report"),
 	path('flat-hourly-report/', FlatHourlyReport, name="flat_hourly_report"),
 	path('negative-balance-flats/', NegativeBalanceFlats.as_view(), name="negative_balance_flats"),
+	path('non-deduction-flats/', NonDeductionFlats.as_view(), name="non_deduction_flats"),
 	path('daily-recharge-report/', DailyRechargeReport, name="daily_recharge_report"),
     path('mothly-recharge-report/', MonthlyRechargeReport, name="monthly_recharge_report"),
 ]

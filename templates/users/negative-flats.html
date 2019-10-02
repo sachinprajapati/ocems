@@ -10,21 +10,27 @@
                     <table class="table table-hover table-sm">
                     <thead>
                       <tr>
+                        <th scope="col">Sno.</th>
                         <th scope="col">Tower</th>
                         <th scope="col">Flat</th>
                         <th scope="col">Owner</th>
+                        <th scope="col">Deduction</th>
                         <th scope="col">Mobile</th>
                         <th scope="col">Amount Left</th>
+                        <th scope="col">Last Deduction</th>
                       </tr>
                     </thead>
                     <tbody>
                       {% for c in object_list %}
                           <tr>
-                            <th scope="row">{{ c.flat.tower }}</th>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ c.flat.tower }}</td>
                             <td>{{ c.flat.flat }}</td>
                             <td>{{ c.flat.owner  }}</td>
+                            <td>{{ c.get_deduction_status_display  }}</td>
                             <td>{{ c.flat.phone }}</td>
                             <td>{{ c.amt_left|floatformat:0 }}</td>
+                            <td>{{ c.last_deduction_dt }}</td>
                           </tr>
                       {% endfor %}
                     </tbody>
