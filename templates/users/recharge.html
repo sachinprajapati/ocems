@@ -87,7 +87,7 @@ $(document).ready(function() {
     $('#recharge-type').on('change', function (e) {
         var optionSelected = $("option:selected", this);
         var valueSelected = this.value;
-        if(valueSelected == "Bank"){
+        if(valueSelected == 2){
             $("#dd-number").css("display","block");
         }else{
             $("#dd-number").css("display", "none");
@@ -161,6 +161,7 @@ $(document).ready(function() {
                                             <select class="form-control" name="Type" id="recharge-type">
                                                 <option value="1">Cash</option>
                                                 <option value="2">Cheque</option>
+                                                <option value="3">NEFT</option>
                                             </select>
                                         </div>
                                     </div>

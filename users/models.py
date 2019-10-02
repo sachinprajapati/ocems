@@ -92,7 +92,8 @@ class Consumption(models.Model):
 
 RECHARGE_TYPE = (
 	(1, _("cash")),
-    (2, _("bank"))
+    (2, _("bank")),
+	(3, _("neft"))
 )
 
 class Recharge(models.Model):
