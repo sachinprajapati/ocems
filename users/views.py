@@ -127,7 +127,6 @@ def DailyRechargeReport(request):
 			except Exception as e:
 				print(e)
 				context['error'] = e
-	print(context)
 	return render(request, 'users/rechargehistory.html', context)
 
 

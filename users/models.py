@@ -83,6 +83,13 @@ class Consumption(models.Model):
 		return '{} amt left {} eb {} and dg {}'.format(self.flat.owner, self.amt_left, self.eb, self.dg)
 
 
+	def getLastEB(self):
+		return float(self.ng_eb)+float(self.start_eb)
+
+	def getLastDG(self):
+		return float(self.ng_dg)+float(self.start_dg)
+
+
 RECHARGE_TYPE = (
 	(1, _("cash")),
     (2, _("bank"))
