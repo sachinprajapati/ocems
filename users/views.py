@@ -88,6 +88,11 @@ class NegativeBalanceFlats(ListView):
 	template_name = "users/negative-flats.html"
 	queryset = Consumption.objects.filter(amt_left__lt=0).order_by('flat__tower', 'flat__flat')
 
+class NonDeductionFlats(ListView):
+	model = Consumption
+	template_name = "users/negative-flats.html"
+	queryset = Consumption.objects.filter(deduction_status=1).order_by('flat__tower', 'flat__flat')
+
 
 @login_required()
 def getBillView(request):
