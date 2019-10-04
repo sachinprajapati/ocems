@@ -31,3 +31,12 @@ class RechargeForm(ModelForm):
 		except Exception as e:
 			print(e)
 			return False
+
+class ChangeMeterForm(ModelForm):
+	class Meta:
+		model = Consumption
+		fields = ('eb', 'dg')
+
+	# def save(self, commit=True):
+	# 	m = super(ChangeMeterForm, self).save(commit=False)
+	# 	m.save()

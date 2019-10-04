@@ -1,20 +1,64 @@
 from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django.utils.translation import ugettext_lazy
+from django.http import HttpResponse
 
 from .models import *
+from .forms import ChangeMeterForm
 
-@admin.register(Flats)
+
+class MyAdminSite(AdminSite):
+
+     def get_urls(self):
+         from django.urls import path
+         urls = super().get_urls()
+         urls += [
+             path('my_view/', self.admin_view(self.my_view))
+         ]
+         return urls
+
+     def my_view(self, request):
+         return HttpResponse("Hello!")
+
+admin_site = MyAdminSite()
+
 class FlatsAdmin(admin.ModelAdmin):
     ordering = ['tower', 'flat']
     search_fields = ['tower', 'flat']
+    readonly_fields=('tower', 'flat', 'flat_size')
 
-@admin.register(Reading)
+
 class ReadingAdmin(admin.ModelAdmin):
     ordering = ['-dt']
     search_fields = ['flat']
 
 
-admin.site.register(Consumption)
-admin.site.register(Recharge)
-admin.site.register(MonthlyBill)
-admin.site.register(Maintance)
-admin.site.register(DeductionAmt)
+class ConsumptionAdmin(admin.ModelAdmin):
+    ordering = ['flat__tower', 'flat__flat']
+    search_fields = ['flat__tower', 'flat__flat']
+    readonly_fields=('dt', 'flat', 'ng_dt', 'last_deduction_dt')
+
+
+class DeductionAmtAdmin(admin.ModelAdmin):
+    ordering = ['tower']
+    readonly_fields=('tower',)
+
+class ChangeMeterAdmin(admin.ModelAdmin):
+    form = ChangeMeterForm
+    ordering = ['flat__tower', 'flat__flat']
+    search_fields = ['flat__tower', 'flat__flat']
+    readonly_fields=('dt', 'flat', 'ng_dt', 'last_deduction_dt')
+
+    def save_model(self, request, obj, form, change):
+        print("obj is",obj)
+        print("form is", form)
+        super().save_model(request, obj, form, change)
+
+admin_site.register(Flats, FlatsAdmin)
+admin_site.register(Reading, ReadingAdmin)
+#admin_site.register(Consumption, ConsumptionAdmin)
+admin_site.register(DeductionAmt, DeductionAmtAdmin)
+admin_site.register(Recharge)
+admin_site.register(MonthlyBill)
+admin_site.register(Maintance)
+admin_site.register(Consumption, ChangeMeterAdmin)

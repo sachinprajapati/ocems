@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Sum
+from django.contrib.auth.models import User
 import pytz
 
 def dt_now():
@@ -37,8 +38,12 @@ class Flats(models.Model):
 	basis = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
 	fixed_amt = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
+	class Meta:
+	    verbose_name = 'Flats'
+	    verbose_name_plural = 'Flats Detail'
+
 	def __str__(self):
-		return '{} {} {}'.format(self.tower, self.flat, self.owner)
+		return 'tower {} flat {} {}'.format(self.tower, self.flat, self.owner)
 
 	def getMaintance(self):
 		if self.tower == 17:
@@ -80,8 +85,11 @@ class Consumption(models.Model):
 	ng_dt = models.DateTimeField(null=True, blank=True)
 
 	def __str__(self):
-		return '{} amt left {} eb {} and dg {}'.format(self.flat.owner, self.amt_left, self.eb, self.dg)
+		return 'tower {} tower {} {} amt left {} eb {} and dg {}'.format(self.flat.tower, self.flat.flat, self.flat.owner, self.amt_left, self.eb, self.dg)
 
+	class Meta:
+	    verbose_name = 'Consumption'
+	    verbose_name_plural = 'Consumption'
 
 	def getLastEB(self):
 		return float(self.ng_eb)+float(self.start_eb)
@@ -190,4 +198,24 @@ class DeductionAmt(models.Model):
 	fixed_amt = models.DecimalField(max_digits=19, decimal_places=4)
 
 	def __str__(self):
-		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
+		return 'tower {} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
+
+	class Meta:
+	    verbose_name = 'Deduction Amount'
+	    verbose_name_plural = 'Deduction Amount'
+
+
+class MeterChange(models.Model):
+	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+	amt_left = models.DecimalField(max_digits=19, decimal_places=4)
+	old_meter_sr = models.TextField(null=True, blank=True, verbose_name="Old Meter Serial Number")
+	old_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start Utility KWH")
+	old_ng_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Consumed Utility KWH")
+	old_last_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Last Utility KWH")
+	old_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start DG KWH")
+	old_ng_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Consumed DG KWH")
+	old_last_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Last DG KWH")
+	new_meter_sr = models.TextField(null=True, blank=True, verbose_name="New Meter Serial Number")
+	new_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start Utility KWH")
+	new_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start DG KWH")
+	dt = models.DateTimeField()
