@@ -43,18 +43,17 @@ def ReadEbAndDG():
 			if cp.eb > cons.getLastEB() or cp.dg > cons.getLastDG():
 				print("flat", cons.flat, "eb", cp.eb, float(cons.getLastEB()), "dg", cp.dg, float(cons.getLastDG()))
 				consumed = (cp.eb-cons.getLastEB())*float(da.eb_price)+(cp.dg-cons.getLastDG())*float(da.dg_price)
-				cons.amt_left = float(cons.amt_left)-consumed
+				amt_left = float(cons.amt_left)-consumed
 				print("consumed ", consumed)
-				cons.ng_eb = cp.eb-float(cons.start_eb)
-				cons.ng_dg = cp.dg-float(cons.start_dg)
-				cons.eb = cp.eb
-				cons.dg = cp.dg
-				cons.last_deduction_dt = timezone.now()
-				cons.save()
-				l.append(cons)
-			else:
-				cons.deduction_status  = 1
-				cons.save()
+				ng_eb = cp.eb-float(cons.start_eb)
+				ng_dg = cp.dg-float(cons.start_dg)
+				eb = cp.eb
+				dg = cp.dg
+				dtnow = timezone.now()
+				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, last_deduction_dt=dtnow, deduction_status=2)
+			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
+				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status  = 1)
+				# cons.save()
 		#Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
 

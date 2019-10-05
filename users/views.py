@@ -1,12 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.conf import settings
 from django.core import serializers
+from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+from django.views.generic import TemplateView
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -194,3 +197,21 @@ def FlatHourlyReport(request):
 				"flat": Flats.objects.get(id=data['id'])
 			}
 	return render(request, 'users/flats-hourly-report.html', context)
+
+
+@login_required
+def FlatMaintanceReport(request):
+	context = {
+		"form" : True,
+	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get("start-date") and data.get("end-date") and data.get("id"):
+			sdate = datetime.strptime(data['start-date'], "%Y-%m-%d").date()
+			edate = datetime.strptime(data['end-date'], "%Y-%m-%d").date() + timedelta(days=1)
+			mt = Maintance.objects.filter(flat__id=data['id'], dt__range=(sdate, edate)).order_by('dt')
+			context = {
+				"maintance" : mt,
+				"flat": Flats.objects.get(id=data['id'])
+			}
+	return render(request, 'users/maintance_report.html', context)

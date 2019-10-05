@@ -191,3 +191,30 @@ class DeductionAmt(models.Model):
 
 	def __str__(self):
 		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
+
+
+FEEDER_TYPE = (
+	(1, _("Incoming")),
+    (2, _("Outgoing")),
+)
+
+PS_TYPE = (
+	(1, _("PS2")),
+    (2, _("PS1")),
+)
+
+class Feeder(models.Model):
+	ps_key = models.PositiveIntegerField(choices=PS_TYPE)
+	name = models.CharField(max_length=255)
+	desc = models.TextField(null=True)
+	eb = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="Utility KWH")
+	dg = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="DG KWH")
+	load = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="Running Load")
+	f_type = models.PositiveIntegerField(choices=FEEDER_TYPE, null=True, blank=True)
+
+class FeederReadings(models.Model):
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+	feeder = models.ForeignKey(Feeder, on_delete=models.CASCADE)
+	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
+	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
+	load = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Running Load")
