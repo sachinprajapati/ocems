@@ -7,20 +7,20 @@ from .models import *
 from .forms import ChangeMeterForm
 
 
-class MyAdminSite(AdminSite):
+# class MyAdminSite(AdminSite):
 
-     def get_urls(self):
-         from django.urls import path
-         urls = super().get_urls()
-         urls += [
-             path('my_view/', self.admin_view(self.my_view))
-         ]
-         return urls
+#      def get_urls(self):
+#          from django.urls import path
+#          urls = super().get_urls()
+#          urls += [
+#              path('my_view/', self.admin_view(self.my_view))
+#          ]
+#          return urls
 
-     def my_view(self, request):
-         return HttpResponse("Hello!")
+#      def my_view(self, request):
+#          return HttpResponse("Hello!")
 
-admin_site = MyAdminSite()
+# admin_site = MyAdminSite()
 
 class FlatsAdmin(admin.ModelAdmin):
     ordering = ['tower', 'flat']
@@ -54,11 +54,13 @@ class ChangeMeterAdmin(admin.ModelAdmin):
         print("form is", form)
         super().save_model(request, obj, form, change)
 
-admin_site.register(Flats, FlatsAdmin)
-admin_site.register(Reading, ReadingAdmin)
+admin.site.register(Flats, FlatsAdmin)
+admin.site.register(Reading, ReadingAdmin)
 #admin_site.register(Consumption, ConsumptionAdmin)
-admin_site.register(DeductionAmt, DeductionAmtAdmin)
-admin_site.register(Recharge)
-admin_site.register(MonthlyBill)
-admin_site.register(Maintance)
-admin_site.register(Consumption, ChangeMeterAdmin)
+admin.site.register(DeductionAmt, DeductionAmtAdmin)
+admin.site.register(Recharge)
+admin.site.register(MonthlyBill)
+admin.site.register(Maintance)
+admin.site.register(Consumption, ChangeMeterAdmin)
+admin.site.register(MeterChange)
+admin.site.register(Feeder)

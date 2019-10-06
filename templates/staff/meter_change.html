@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #dd-number{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<script type="text/javascript">
+$(document).ready(function() {
+  // Restrict input to digits by using a regular expression filter.
+  $("#submit-form").click(function() {
+    location.reload();
+  });
+});
+</script>
+<script type="text/javascript">
+(function($) {
+  $.fn.inputFilter = function(inputFilter) {
+    return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+      if (inputFilter(this.value)) {
+        this.oldValue = this.value;
+        this.oldSelectionStart = this.selectionStart;
+        this.oldSelectionEnd = this.selectionEnd;
+      } else if (this.hasOwnProperty("oldValue")) {
+        this.value = this.oldValue;
+        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+      }
+    });
+  };
+}(jQuery));
+
+$(document).ready(function() {
+  // Restrict input to digits by using a regular expression filter.
+  $(".number").inputFilter(function(value) {
+    return /^\d*$/.test(value);
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+    $("#flat").bind("keyup", function(e) {
+        var code = e.keyCode || e.which;
+        if (code != '9') {
+            var tower = $("#tower").val();
+            var flat = $("#flat").val();
+            $.ajax({
+                url: "{% url 'users:getFlat' %}",
+                type: "POST", //send it through get method
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}', 
+                    tower: tower, 
+                    flat: flat
+                    },
+                success: function(data){
+                    console.log(data)
+                    $("#hidden-form").css("display","block");
+                    $("#name").val(data['owner']);
+                    $("#phone").val(data['phone']);
+                    $("#eb").val((parseFloat(data['ng_eb'])+parseFloat(data['start_eb'])).toFixed(2));
+                    $("#dg").val(parseFloat((data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
+                    $("#left").val(data['amt_left']);
+                    $("#flat_pkey").val(data['flat']);  
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                    $("#name").val('');
+                    $("#phone").val('');
+                    $("#eb").val('');
+                    $("#dg").val('');
+                    $("#left").val('');
+                    $("#flat_pkey").val('');
+                    $("#hidden-form").css("display","none");
+                }       
+            });
+        }
+    })
+});
+</script>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    $('#recharge-type').on('change', function (e) {
+        var optionSelected = $("option:selected", this);
+        var valueSelected = this.value;
+        if(valueSelected == 2){
+            $("#dd-number").css("display","block");
+        }else{
+            $("#dd-number").css("display", "none");
+        }
+    });
+});
+
+</script>
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header text-center">Recharge ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                        <div class="card-body">
+                        <form action="" method="post" target="_blank">
+                            {% csrf_token %}
+                            <div class="row">
+                            <input type="hidden" name="flat" id='flat_pkey' value="">
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
+                                        <input type="number" id="tower" class="form-control number" name="tower" required autofocus>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label">Flat Number</label>
+                                        <input type="number" id="flat" class="form-control number" name="flat-no" required autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="hidden-form">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Owner</label>
+                                            <input type="text" id="name" class="form-control" name="owner" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Mobile</label>
+                                            <input type="number" id="phone" class="form-control" name="mob" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Current EB</label>
+                                            <input type="number" id="eb" class="form-control" name="eb" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Current DG</label>
+                                            <input type="number" id="dg" class="form-control" name="dg" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Amount Left</label>
+                                            <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" id="submit-form" class="btn btn-primary btn-block">Change Meter</button>
+                                </div>
+                            </div>
+                    	</div>
+                            {% if errors %}
+                                {% for e in errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ e|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

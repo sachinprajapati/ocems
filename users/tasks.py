@@ -83,8 +83,12 @@ def MaintanceFixed():
 	c = list(Consumption.objects.all())
 	maint = []
 	for i in c:
-		maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(),famt=i.flat.getFixed()))
-		i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
+		last_d = Maintance.objects.filter(flat=i.flat).order_by("-dt")[0]
+		a = (timezone.now()-last_d.dt).days
+		print(a, type(a))
+		break
+	# 	maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(),famt=i.flat.getFixed()))
+	# 	i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
 
-	Maintance.objects.bulk_create(maint)
-	Consumption.objects.bulk_update(c, ['amt_left'])
+	# Maintance.objects.bulk_create(maint)
+	# Consumption.objects.bulk_update(c, ['amt_left'])

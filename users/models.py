@@ -216,6 +216,33 @@ class MeterChange(models.Model):
 	old_ng_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Consumed DG KWH")
 	old_last_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Last DG KWH")
 	new_meter_sr = models.TextField(null=True, blank=True, verbose_name="New Meter Serial Number")
-	new_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start Utility KWH")
-	new_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start DG KWH")
+	new_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start Utility KWH")
+	new_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start DG KWH")
 	dt = models.DateTimeField()
+
+FEEDER_TYPE = (
+	(1, _("Incoming")),
+    (2, _("Outgoing")),
+)
+
+PS_TYPE = (
+	(1, _("PS2")),
+    (2, _("PS1")),
+)
+
+class Feeder(models.Model):
+	ps_key = models.PositiveIntegerField(choices=PS_TYPE)
+	name = models.CharField(max_length=255)
+	desc = models.TextField(null=True)
+	eb = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="Utility KWH")
+	dg = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="DG KWH")
+	load = models.DecimalField(max_digits=19, decimal_places=4, null=True, verbose_name="Running Load")
+	f_type = models.PositiveIntegerField(choices=FEEDER_TYPE, null=True, blank=True)
+
+class FeederReadings(models.Model):
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+	feeder = models.ForeignKey(Feeder, on_delete=models.CASCADE)
+	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
+	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
+	load = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Running Load")
+	

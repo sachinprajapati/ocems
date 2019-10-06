@@ -29,6 +29,6 @@ d.index += 1
 
 d['dt'] = pd.to_datetime(d['dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
 
-#d.to_sql('users_meterchange', conn, if_exists="append")
+d.to_sql('users_meterchange', conn, if_exists="append")
 
-#conn.commit()'''
+conn.commit()
