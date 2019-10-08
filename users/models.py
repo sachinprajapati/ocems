@@ -207,7 +207,10 @@ class MeterChange(models.Model):
 	new_meter_sr = models.TextField(null=True, blank=True, verbose_name="New Meter Serial Number")
 	new_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start Utility KWH")
 	new_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start DG KWH")
-	dt = models.DateTimeField()
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+	def __str__(self):
+		return '{} {}'.format(self.flat, self.amt_left)
 
 	
 FEEDER_TYPE = (

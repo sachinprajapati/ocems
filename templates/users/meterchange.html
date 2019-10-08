@@ -50,14 +50,19 @@ $(document).ready(function(){
                     flat: flat
                     },
                 success: function(data){
-                    console.log(data)
                     $("#hidden-form").css("display","block");
-                    $("#name").val(data['owner']);
-                    $("#phone").val(data['phone']);
-                    $("#eb").val(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
-                    $("#dg").val(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
-                    $("#left").val(data['amt_left']);
-                    $("#flat_pkey").val(data['flat']); 
+                    $("#id_flat").val(data['flat']);
+                    $("p.tower").text(data['tower']);
+                    $('p.owner').text(data['owner']);
+                    $('p.phone').text(data['phone']);
+                    $('p.email').text(data['email']);
+                    $('p.amt_left').text(data['amt_left']);
+                    $('p.total_eb').text(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
+                    $('p.start_eb').text(parseFloat(data['start_eb']));
+                    $('p.consumed_eb').text(parseFloat(data['ng_eb']).toFixed(2));
+                    $('p.total_dg').text(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
+                    $('p.start_dg').text(parseFloat(data['start_dg']));
+                    $('p.consumed_dg').text(parseFloat(data['ng_dg']));
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -88,7 +93,7 @@ $(document).ready(function(){
                         <form action="" method="post">
                             {% csrf_token %}
                             <div class="row">
-                            <input type="hidden" name="id" id='flat_pkey'>
+                            <input type="hidden" name="flat" id='id_flat'>
                                 <div class="col-4">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
@@ -98,42 +103,102 @@ $(document).ready(function(){
                                 <div class="col-4">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label">Flat Number</label>
-                                        <input type="number" id="flat" class="form-control number" name="flat" required autofocus>
+                                        <input type="number" id="flat" class="form-control number" name="flat_no" required autofocus>
                                     </div>
                                 </div>
                             </div>
                             <div id="hidden-form">
                                 <div class="row">
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Owner</label>
-                                            <input type="text" id="name" class="form-control" name="owner" required autofocus disabled="">
+                                    <div class="col-6">
+                                        <div class="tab-content profile-tab" id="myTabContent">
+                                            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Name</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="owner"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Email</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="email"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Phone</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="phone"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Amount Left</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="amt_left"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Mobile</label>
-                                            <input type="number" id="phone" class="form-control" name="mob" required autofocus disabled="">
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Current EB</label>
-                                            <input type="number" id="eb" class="form-control" name="eb" required autofocus disabled="">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Current DG</label>
-                                            <input type="number" id="dg" class="form-control" name="dg" required autofocus disabled="">
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Amount Left</label>
-                                            <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
+                                    <div class="col-6">
+                                        <div class="tab-content profile-tab" id="myTabContent">
+                                            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Total EB</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="total_eb"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Start EB</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="start_eb"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Consumed EB</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="consumed_eb"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Total DG</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="total_dg"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Start DG</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="start_dg"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Consumed EB</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="consumed_dg"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -141,19 +206,19 @@ $(document).ready(function(){
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-form-label">Start EB</label>
-                                            <input type="number" name="New_EB" class="form-control" required="" id="id_New_EB">
+                                            <input type="number" class="form-control" name="new_start_eb" step="0.0001" required="" id="id_new_start_eb">
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-form-label">End DG</label>
-                                            <input type="number" name="New_Dg" class="form-control" required="" id="id_New_Dg">
+                                            <input type="number" class="form-control" name="new_start_dg" step="0.0001" required="" id="id_new_start_dg">
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-form-label">Meter Serial Number</label>
-                                            <input type="text" name="Meter_Serial_Number" class="form-control" id="id_Meter_Serial_Number">
+                                            <input type="text" name="new_meter_sr" class="form-control" id="id_new_meter_sr">
                                         </div>
                                     </div>
                                 </div>
@@ -161,7 +226,7 @@ $(document).ready(function(){
                                     <button type="submit" class="btn btn-primary btn-block">Change Meter</button>
                                 </div>
                             </div>
-                      </div>
+                        </div>
                         {% if form.errors %}
                             {% for field in form %}
                                 {% for error in field.errors %}

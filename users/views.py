@@ -232,12 +232,8 @@ class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 		return super().form_valid(form)
 
 @method_decorator(staff_member_required, name='dispatch')
-class MeterChangeView(SuccessMessageMixin, FormView):
+class MeterChangeView(SuccessMessageMixin, CreateView):
 	template_name = 'users/meterchange.html'
 	form_class = MeterChangeForm
 	success_url = reverse_lazy('users:meter_change')
 	success_message = 'List successfully saved!!!!'
-
-	def form_valid(self, form):
-		print(form)
-		return super().form_valid(form)
