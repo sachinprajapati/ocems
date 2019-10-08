@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+from django import forms
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -31,3 +32,32 @@ class RechargeForm(ModelForm):
 		except Exception as e:
 			print(e)
 			return False
+
+
+class SendSMS(forms.Form):
+	id = forms.IntegerField()
+	message = forms.CharField(widget=forms.Textarea())
+
+	def clean_id(self):
+		try:
+			flat = Flats.objects.get(id=self.cleaned_data['id'])
+		except Exception as e:
+			raise ValidationError(e)
+		return flat
+
+	def send_email(self):
+		print("message sent")
+
+
+class MeterChangeForm(forms.Form):
+	id = forms.IntegerField()
+	New_EB = forms.IntegerField()
+	New_Dg = forms.IntegerField()
+	Meter_Serial_Number = forms.CharField(required=False)
+
+	def clean_id(self):
+		try:
+			flat = Flats.objects.get(id=self.cleaned_data['id'])
+		except Exception as e:
+			raise ValidationError(e)
+		return flat

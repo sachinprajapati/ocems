@@ -1,13 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.messages.views import SuccessMessageMixin
 from django.utils import timezone
+from django.urls import reverse_lazy
 from django.conf import settings
 from django.core import serializers
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Sum
@@ -16,7 +19,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from .models import *
-from .forms import RechargeForm
+from .forms import *
 import json
 import pytz
 
@@ -215,3 +218,26 @@ def FlatMaintanceReport(request):
 				"flat": Flats.objects.get(id=data['id'])
 			}
 	return render(request, 'users/maintance_report.html', context)
+
+
+class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+	template_name = 'users/send_sms.html'
+	form_class = SendSMS
+	success_url = '/send-sms/'
+	success_message = 'Sent Message to %(id)s'
+
+	def form_valid(self, form):
+		print(form)
+		form.send_email()
+		return super().form_valid(form)
+
+@method_decorator(staff_member_required, name='dispatch')
+class MeterChangeView(SuccessMessageMixin, FormView):
+	template_name = 'users/meterchange.html'
+	form_class = MeterChangeForm
+	success_url = reverse_lazy('users:meter_change')
+	success_message = 'List successfully saved!!!!'
+
+	def form_valid(self, form):
+		print(form)
+		return super().form_valid(form)

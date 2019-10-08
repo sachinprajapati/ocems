@@ -16,4 +16,6 @@ urlpatterns = [
 	path('non-deduction-flats/', NonDeductionFlats.as_view(), name="non_deduction_flats"),
 	path('daily-recharge-report/', DailyRechargeReport, name="daily_recharge_report"),
     path('mothly-recharge-report/', MonthlyRechargeReport, name="monthly_recharge_report"),
+	path('send-sms/', SendSMSView.as_view(), name="send_sms"),
+	path('meter-change/', MeterChangeView.as_view(), name="meter_change"),
 ]

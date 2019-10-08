@@ -26,6 +26,7 @@
           <a class="dropdown-item" href="{% url 'users:flat_hourly_report' %}">Flat Hourly Report</a>
           <a class="dropdown-item" href="{% url 'users:flat_maintance_report' %}">Flat Maintance Report</a>
           <a class="dropdown-item" href="{% url 'users:flat_bill' %}">Flat Bill</a>
+          <a class="dropdown-item" href="{% url 'users:send_sms' %}">Send SMS</a>
           <a class="dropdown-item" href="{% url 'users:negative_balance_flats' %}">Negative Balance Flats</a>
           <a class="dropdown-item" href="{% url 'users:non_deduction_flats' %}">Non Deduction Flats</a>
         </div>
@@ -38,7 +39,7 @@
           <a class="dropdown-item" href="#">Action</a>
           <a class="dropdown-item" href="">change password</a>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="">Logout</a>
+          <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
         </div>
       </li>
       {% if request.user.is_staff %}
@@ -47,7 +48,7 @@
             Admin Action
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="">change password</a>
+            <a class="dropdown-item" href="{% url 'users:meter_change' %}">Meter Change</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="">Logout</a>
           </div>

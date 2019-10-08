@@ -193,6 +193,23 @@ class DeductionAmt(models.Model):
 		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
 
 
+
+class MeterChange(models.Model):
+	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+	amt_left = models.DecimalField(max_digits=19, decimal_places=4)
+	old_meter_sr = models.TextField(null=True, blank=True, verbose_name="Old Meter Serial Number")
+	old_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start Utility KWH")
+	old_ng_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Consumed Utility KWH")
+	old_last_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Last Utility KWH")
+	old_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Start DG KWH")
+	old_ng_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Consumed DG KWH")
+	old_last_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Old Last DG KWH")
+	new_meter_sr = models.TextField(null=True, blank=True, verbose_name="New Meter Serial Number")
+	new_start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start Utility KWH")
+	new_start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="New Start DG KWH")
+	dt = models.DateTimeField()
+
+	
 FEEDER_TYPE = (
 	(1, _("Incoming")),
     (2, _("Outgoing")),
