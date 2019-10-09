@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Sum
 import pytz
+import socket
 
 def dt_now():
 	dt = timezone.now()
@@ -38,7 +39,7 @@ class Flats(models.Model):
 	fixed_amt = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 	def __str__(self):
-		return '{} {} {}'.format(self.tower, self.flat, self.owner)
+		return 'tower {} flat {} owner {}'.format(self.tower, self.flat, self.owner)
 
 	def getMaintance(self):
 		if self.tower == 17:
@@ -108,6 +109,12 @@ class Recharge(models.Model):
 
 	def __str__(self):
 		return '{} recharge {}'.format(self.flat, self.recharge)
+
+	def save(self, *args, **kwargs):
+	    mt = MessageTemplate.objects.get(m_type=1)
+	    text = mt.text.format(self.flat.owner, self.flat.tower, self.flat.flat, self.recharge, self.amt_left+self.recharge)
+	    mt.sendMessage(text, self)
+	    super(Recharge, self).save(*args, **kwargs)
 
 class MonthlyBill(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
@@ -238,3 +245,46 @@ class FeederReadings(models.Model):
 	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
 	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
 	load = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Running Load")
+
+
+Message_TYPE = (
+	(1, _("Recharge")),
+    (2, _("Low Balance")),
+    (3, _("Negative Balance")),
+    (4, _("Compose")),
+)
+
+
+def is_connected():
+    try:
+        socket.create_connection(("www.google.com", 80))
+        return True
+    except OSError:
+        pass
+    return False
+
+class MessageTemplate(models.Model):
+	m_type = models.PositiveIntegerField(choices=Message_TYPE, unique=True)
+	text = models.TextField()
+
+	def __str__(self):
+		return '{} - {}'.format(self.get_m_type_display(), self.text)
+
+	def sendMessage(self, text, recharge):
+		if is_connected():
+			print("in connected")
+			sm = SentMessage(flat=recharge.flat, m_type=self, text=text)
+			sm.save()
+		else:
+			print("in else ")
+			print("internet is not working")
+
+
+class SentMessage(models.Model):
+	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+	m_type = models.ForeignKey(MessageTemplate, on_delete=models.SET_NULL, null=True)
+	text = models.TextField()
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+	def __str__(self):
+		return 'tower {} flat {} type {} at {}'.format(self.flat.tower, self.flat.flat, self.m_type.get_m_type_display(), self.dt.strftime("%d/%m/%y %H:%M %p"))

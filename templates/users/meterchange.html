@@ -56,6 +56,7 @@ $(document).ready(function(){
                     $('p.owner').text(data['owner']);
                     $('p.phone').text(data['phone']);
                     $('p.email').text(data['email']);
+                    $('p.meter_sr').text(data['meter_sr']);
                     $('p.amt_left').text(data['amt_left']);
                     $('p.total_eb').text(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
                     $('p.start_eb').text(parseFloat(data['start_eb']));
@@ -89,8 +90,8 @@ $(document).ready(function(){
                 <div class="card">
                 {% if form %}
                   <div class="card-header text-center">Meter Change ( OC Maintance )<i class="fas fa-cloud"></i></div>
-                        <div class="card-body">
-                        <form action="" method="post">
+                    <div class="card-body">
+                    <form action="" method="post">
                             {% csrf_token %}
                             <div class="row">
                             <input type="hidden" name="flat" id='id_flat'>
@@ -142,6 +143,14 @@ $(document).ready(function(){
                                                     </div>
                                                     <div class="col-md-6">
                                                         <p class="amt_left"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label>Meter Serial Number</label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p class="meter_sr"></p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -211,7 +220,7 @@ $(document).ready(function(){
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">End DG</label>
+                                            <label for="email_address" class="col-form-label">Start DG</label>
                                             <input type="number" class="form-control" name="new_start_dg" step="0.0001" required="" id="id_new_start_dg">
                                         </div>
                                     </div>
@@ -222,11 +231,20 @@ $(document).ready(function(){
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12">
+                                <div class="">
                                     <button type="submit" class="btn btn-primary btn-block">Change Meter</button>
                                 </div>
                             </div>
-                        </div>
+                        </form>
+                        {% if messages %}
+                            <div class="col-8">
+                                {% for message in messages %}
+                                <div class="alert alert-primary">
+                                    <strong>{{ message|escape }}</strong>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         {% if form.errors %}
                             {% for field in form %}
                                 {% for error in field.errors %}
@@ -241,8 +259,8 @@ $(document).ready(function(){
                                 </div>
                             {% endfor %}
                         {% endif %}
-                        </form>
                     </div>
+                </div>
               {% else %}
                 <div class="row">
                     <div class="col-1"></div>

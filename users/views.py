@@ -35,6 +35,7 @@ def dt_now():
 def Dashboard(request):
 	return render(request, 'users/dashboard.html', {})
 
+
 # class RechargeView(CreateView):
 # 	template_name = "users/recharge.html"
 # 	form_class = RechargeForm
@@ -227,13 +228,13 @@ class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 	success_message = 'Sent Message to %(id)s'
 
 	def form_valid(self, form):
-		print(form)
 		form.send_email()
 		return super().form_valid(form)
+
 
 @method_decorator(staff_member_required, name='dispatch')
 class MeterChangeView(SuccessMessageMixin, CreateView):
 	template_name = 'users/meterchange.html'
 	form_class = MeterChangeForm
 	success_url = reverse_lazy('users:meter_change')
-	success_message = 'List successfully saved!!!!'
+	success_message = "%(flat)s's Meter Changed Successfully"

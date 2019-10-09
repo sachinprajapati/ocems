@@ -3,7 +3,7 @@ from django import forms
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
+from django.utils import timezone
 from .models import *
 
 
@@ -11,6 +11,12 @@ class RechargeForm(ModelForm):
 	class Meta:
 		model = Recharge
 		fields = ['flat', 'recharge', 'Type', 'chq_dd']
+
+	def clean_recharge(self):
+		recharge = self.cleaned_data['recharge']
+		if recharge < 500:
+			raise ValidationError("Recharge Amount should be more thann 500")
+		return recharge
 
 
 	def save(self, commit=True):
@@ -61,16 +67,28 @@ class MeterChangeForm(ModelForm):
 
 	def save(self, commit=True):
 		m = super(MeterChangeForm, self).save(commit=False)
-		m.amt_left = m.flat.consumption.amt_left
-		m.old_meter_sr = m.flat.meter_sr
-		m.flat.meter_sr = m.new_meter_sr
-		m.old_start_eb = m.flat.consumption.start_eb
-		m.old_ng_eb = m.flat.consumption.ng_eb
-		m.old_last_eb = m.flat.consumption.getLastEB()
-		m.old_start_dg = m.flat.start_dg
-		m.old_ng_dg = m.flat.ng_dg
-		m.old_last_dg = m.flat.getLastDG()
-		m.flat.consumption.start_eb = m.new_start_eb
-		m.flat.consumption.start_dg = m.new_start_dg
-		m.save()
-		return m
+		try:
+			with transaction.atomic():
+				m.amt_left = m.flat.consumption.amt_left
+				m.old_meter_sr = m.flat.meter_sr
+				m.flat.meter_sr = m.new_meter_sr
+				m.flat.save()
+				m.old_start_eb = m.flat.consumption.start_eb
+				m.old_ng_eb = m.flat.consumption.ng_eb
+				m.old_last_eb = m.flat.consumption.getLastEB()
+				m.old_start_dg = m.flat.consumption.start_dg
+				m.old_ng_dg = m.flat.consumption.ng_dg
+				m.old_last_dg = m.flat.consumption.getLastDG()
+				m.flat.consumption.start_eb = m.new_start_eb
+				m.flat.consumption.start_dg = m.new_start_dg
+				m.flat.consumption.ng_eb = 0
+				m.flat.consumption.ng_dg = 0
+				m.flat.consumption.eb = 0
+				m.flat.consumption.dg = 0
+				m.flat.consumption.meter_change_dt = timezone.now()
+				m.flat.consumption.save()
+				m.save()
+				return m
+		except Exception as e:
+			print(e)
+			return False

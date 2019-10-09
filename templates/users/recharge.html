@@ -14,7 +14,11 @@
 $(document).ready(function() {
   // Restrict input to digits by using a regular expression filter.
   $("#submit-form").click(function() {
-    location.reload();
+    var recharge = $("#recharge_id").val()
+    console.log("recharge amount is"+recharge)
+    if(recharge >= 500){
+        location.reload();
+    }
   });
 });
 </script>
@@ -170,7 +174,7 @@ $(document).ready(function() {
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-md-6 col-form-label">Recharge Amount</label>
-                                            <input type="number" class="form-control number" name="recharge" required autofocus>
+                                            <input type="number" class="form-control number" id="recharge_id" min="500" name="recharge" required autofocus>
                                         </div>
                                     </div>
                                     <div class="col-4" id="dd-number">
@@ -192,7 +196,21 @@ $(document).ready(function() {
                                     </div>
                                 {% endfor %}
                             {% endif %}
-                        </form>
+                            {% if form.errors %}
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <div class="alert alert-danger">
+                                            <strong>{{ error|escape }}</strong>
+                                        </div>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            </form>
                     </div>
                 </div>
             </div>

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -287,10 +288,10 @@ a {
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tbody><tr>
                                     <td class="content-block">
-                                        <h3>Orange County</h3>
+                                        <img src="{% static 'img/orange.png' %}" height="70" width="180">
                                         <pre style="font-size: 12px;">GH-4, Ahinsa Khand-1, Indirapuram, Ghaziabad
-Phone No: 7428395297,Fax No: 01204188908
-Email Id: ocrwa@yahoo.in
+Phone No: 7428395297, 
+Email Id: orangecounty.csk@gmail.com
 										</pre>
                                     </td>
                                 </tr>
@@ -301,25 +302,29 @@ Email Id: ocrwa@yahoo.in
                                                 <td>
                                                 	Owner	:	{{ flat.owner }}<span style="float: right;">Meter Serial : {{ flat.meter_sr }}</span><br>
                                                 	Tower	:	{{ flat.tower }}<span style="float: right;">Flat : {{ flat.flat }}</span><br>
-                                                	EB	:	{{ flat.consumption.eb }}<span style="float: right;">DG : {{ flat.consumption.dg }}</span><br>
+                                                	EB	:	{{ flat.consumption.eb|floatformat:2 }}<span style="float: right;">DG : {{ flat.consumption.dg|floatformat:2 }}</span><br>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>
                                                     <table class="invoice-items" cellpadding="0" cellspacing="0">
                                                         <tbody>
-                                                        <tr>
+                                                        <!-- <tr>
                                                             <td>Previous Amount</td>
                                                             <td class="alignright">{{ prevamt|floatformat:2 }}</td>
-                                                        </tr>
+                                                        </tr> -->
                                                         <tr>
-                                                            <td>Recharge Amt(Rs) :</td>
+                                                            <td>Thanks for Recharge of :</td>
                                                             <td class="alignright">{{ recharge_amt }}</td>
                                                         </tr>
-                                                        <tr class="total">
-                                                            <td class="alignright" width="80%">Total : </td>
-                                                            <td class="alignright">&nbsp;{{ flat.consumption.amt_left|floatformat:2 }}</td>
+                                                         <tr>
+                                                            <td>Your Total Amount is :</td>
+                                                            <td class="alignright">{{ flat.consumption.amt_left|floatformat:2 }}</td>
                                                         </tr>
+                                                        <!-- <tr class="total">
+                                                            <td class="alignright" width="80%">Your Total Amount is : </td>
+                                                            <td class="alignright">&nbsp;{{ flat.consumption.amt_left|floatformat:2 }}</td>
+                                                        </tr> -->
                                                     </tbody></table>
                                                 </td>
                                             </tr>
@@ -327,16 +332,15 @@ Email Id: ocrwa@yahoo.in
                                     </td>
                                 </tr>
                                 <tr>
-                                	<strong></strong>
                                     <td class="content-block">
-                                    <h5>Authorised Signature</h5>
-                                    <h5><strong> **Terms & Conditions **</strong></h5>
-                                        <ol class="terms">
+                                    <p>Authorised Signature<sub style="font-size: 9px;">**TC**</sub></p>
+                                        <ol class="terms" style="margin-top: -10px;">
                                         <li>Amount once paid will be not Refundable.</li>
 										<li>All Right are reserved at Orange County.</li>
 										<li>Please re-check your RECHARGE slip before
-										you leave the office.</li>				
-										</ol>
+										you leave the office.</li>
+                                        </ol>
+                                    <i style="font-size: 12px;">Developed by Protool Automation & Control</i>
                                     </td>
                                 </tr>
                             </tbody></table>
@@ -344,7 +348,6 @@ Email Id: ocrwa@yahoo.in
                     </tr>
                 </tbody></table></div>
         </td>
-        <td></td>
     </tr>
 </tbody></table>
 </body>
