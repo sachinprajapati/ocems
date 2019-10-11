@@ -116,6 +116,10 @@ class Recharge(models.Model):
 	    mt.sendMessage(text, self)
 	    super(Recharge, self).save(*args, **kwargs)
 
+class BillAdjustmentManager(models.Manager):
+    def getAdjustment(self, year, month):
+       return MonthlyBill.objects.filter(year=year, month=year)
+
 class MonthlyBill(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
 	month = models.PositiveIntegerField()
@@ -156,13 +160,17 @@ class MonthlyBill(models.Model):
 
 	def get_TotalUsed(self):
 		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()
-		return t
+		return float(t)
 
 	def get_RechargeInMonth(self):
 		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge'))
 		if not r['recharge__sum']:
 			r['recharge__sum'] = 0
-		return r['recharge__sum']
+		return float(r['recharge__sum'])
+
+	def get_Adjustment(self):
+		return float(self.opn_amt)+self.get_RechargeInMonth()-self.get_TotalUsed()-float(self.cls_amt)
+
 
 class Maintance(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
@@ -288,3 +296,8 @@ class SentMessage(models.Model):
 
 	def __str__(self):
 		return 'tower {} flat {} type {} at {}'.format(self.flat.tower, self.flat.flat, self.m_type.get_m_type_display(), self.dt.strftime("%d/%m/%y %H:%M %p"))
+
+class Debit(models.Model):
+	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+	amt_left = models.DecimalField(max_digits=19, decimal_places=4)
+	debit_amt = models.PositiveIntegerField()
