@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_extensions',
     'djcelery',
+    'django_windows_tools',
 ]
 
 MIDDLEWARE = [

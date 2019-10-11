@@ -33,8 +33,7 @@ def ReadEbAndDG():
 	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
 	#c = cur.execute("SELECT flat_pkey, Utility_KWH as eb, DG_KWH as dg FROM [EMS].[dbo].[TblConsumption] where flat_pkey=728")
 	#c = c.fetchall()
-	#c = getFlatData()
-	c = {"data": [{"flat_id": 728, "eb": 108685, "dg": 8521.09}, {"flat_id": 729, "eb": 14005, "dg": 295.1794}]}
+	c = getFlatData()
 	if c:
 		l = []
 		sms = []
@@ -43,10 +42,8 @@ def ReadEbAndDG():
 			cons = Consumption.objects.get(flat__id=cp.flat_id)
 			da = DeductionAmt.objects.get(tower=cons.flat.tower)
 			if cp.eb > cons.getLastEB() or cp.dg > cons.getLastDG():
-				print("flat", cons.flat, "eb", cp.eb, float(cons.getLastEB()), "dg", cp.dg, float(cons.getLastDG()))
 				consumed = (cp.eb-cons.getLastEB())*float(da.eb_price)+(cp.dg-cons.getLastDG())*float(da.dg_price)
 				amt_left = float(cons.amt_left)-consumed
-				print("consumed ", consumed)
 				ng_eb = cp.eb-float(cons.start_eb)
 				ng_dg = cp.dg-float(cons.start_dg)
 				eb = cp.eb
@@ -59,16 +56,12 @@ def ReadEbAndDG():
 							text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, amt_left)
 							mt.SendSMS(text, cons.flat)
 							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-						else:
-							print(mt, "message already send")
 					elif amt_left < 0:
 						mt = MessageTemplate.objects.get(m_type=3)
 						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
 							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, amt_left)
 							mt.SendSMS(text, cons.flat)
 							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-						else:
-							print(mt, "message already send")
 				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, last_deduction_dt=dtnow, deduction_status=2)
 			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
 				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status = 1)
@@ -98,5 +91,5 @@ def MaintanceFixed():
 		maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(), famt=i.flat.getFixed()))
 		i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
 
-	# Maintance.objects.bulk_create(maint)
-	# Consumption.objects.bulk_update(c, ['amt_left'])
+	Maintance.objects.bulk_create(maint)
+	Consumption.objects.bulk_update(c, ['amt_left'])

@@ -245,21 +245,21 @@ class BillAdjusmentView(SuccessMessageMixin, ListView):
 	success_url = reverse_lazy('users:meter_change')
 	success_message = "%(flat)s's Meter Changed Successfully"
 	model = MonthlyBill
-	paginate_by = 10
+	# paginate_by = 10
 
 	def get_queryset(self):
 		try:
 			date = datetime.strptime(self.request.GET.get('month'), "%Y-%m").date()
 			print("date is ", date)
-			result = MonthlyBill.objects.filter(year=date.year, month=date.month)
+			result = [i for i in MonthlyBill.objects.filter(year=date.year, month=date.month) if i.get_Adjustment() < 0]
 		except Exception as e:
 			print(e)
 			return None
-		return [i for i in result if i.get_Adjustment() != 0]
+		return result
 
-	def get_context_data(self, **kwargs):
-		context = super().get_context_data(**kwargs)
-		if not self.request.GET.get('month'):
-			context["choose_date"] = True
-		print(len(context['object_list']))
-		return context
+	# def get_context_data(self, **kwargs):
+	# 	context = super().get_context_data(**kwargs)
+	# 	if not self.request.GET.get('month'):
+	# 		context["choose_date"] = True
+	# 	print(len(context['object_list']))
+	# 	return context

@@ -116,10 +116,6 @@ class Recharge(models.Model):
 	    mt.sendMessage(text, self.flat)
 	    super(Recharge, self).save(*args, **kwargs)
 
-class BillAdjustmentManager(models.Manager):
-    def getAdjustment(self, year, month):
-       return MonthlyBill.objects.filter(year=year, month=year)
-
 class MonthlyBill(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
 	month = models.PositiveIntegerField()
@@ -142,21 +138,25 @@ class MonthlyBill(models.Model):
 		return self.end_eb-self.start_eb
 
 	def get_ebprice(self):
-		return self.eb_price*self.get_eb()
+		return float(float(self.eb_price)*float(self.get_eb()))
 
 	def get_dg(self):
 		return self.end_dg-self.start_dg
 
 	def get_dgprice(self):
-		return self.dg_price*self.get_dg()
+		return float(self.dg_price)*float(self.get_dg())
 
 	def get_TotalMaintance(self):
 		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
-		return m['mcharge__sum']
+		if not m['mcharge__sum']:
+			m['mcharge__sum'] = 0
+		return float(m['mcharge__sum'])
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))
-		return f['famt__sum']
+		if not f['famt__sum']:
+			f['famt__sum'] = 0
+		return float(f['famt__sum'])
 
 	def get_TotalUsed(self):
 		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()
@@ -170,7 +170,6 @@ class MonthlyBill(models.Model):
 
 	def get_Adjustment(self):
 		return float(self.opn_amt)+self.get_RechargeInMonth()-self.get_TotalUsed()-float(self.cls_amt)
-
 
 class Maintance(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
