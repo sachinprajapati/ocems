@@ -238,3 +238,28 @@ class MeterChangeView(SuccessMessageMixin, CreateView):
 	form_class = MeterChangeForm
 	success_url = reverse_lazy('users:meter_change')
 	success_message = "%(flat)s's Meter Changed Successfully"
+
+@method_decorator(staff_member_required, name='dispatch')
+class BillAdjusmentView(SuccessMessageMixin, ListView):
+	template_name = 'users/bill_adjustment.html'
+	success_url = reverse_lazy('users:meter_change')
+	success_message = "%(flat)s's Meter Changed Successfully"
+	model = MonthlyBill
+	paginate_by = 10
+
+	def get_queryset(self):
+		try:
+			date = datetime.strptime(self.request.GET.get('month'), "%Y-%m").date()
+			print("date is ", date)
+			result = MonthlyBill.objects.filter(year=date.year, month=date.month)
+		except Exception as e:
+			print(e)
+			return None
+		return [i for i in result if i.get_Adjustment() != 0]
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		if not self.request.GET.get('month'):
+			context["choose_date"] = True
+		print(len(context['object_list']))
+		return context

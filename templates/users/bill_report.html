@@ -126,7 +126,7 @@
 						<h5><pre><strong class="float-right"> Total Use		:	{{ bill.get_TotalUsed|floatformat:2 }}</strong></pre></h5>
 						<h5><pre><strong class="float-right">Opening Balance		:	{{ bill.opn_amt|floatformat:2 }}</strong></pre></h5>
 						<h5><pre><strong class="float-right">Recharge in the Month	:	{{ bill.get_RechargeInMonth }}</strong></pre></h5>
-						<h5><pre><strong class="float-right">Adjustment(+/-)  :  1300	Curent Balance		:	{{ bill.cls_amt|floatformat:2 }}</strong></pre></h5>
+						<h5><pre><strong class="float-right">Adjustment(+/-)  :  {{ bill.get_Adjustment|floatformat:2 }}	Curent Balance		:	{{ bill.cls_amt|floatformat:2 }}</strong></pre></h5>
 					</div>
 				</div>
 				<hr/>

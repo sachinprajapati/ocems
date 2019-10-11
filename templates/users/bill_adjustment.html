@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #dd-number{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                {% if choose_date %}
+                  <div class="card-header text-center">Meter Change ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                    <div class="card-body">
+                    <form action="" method="get">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label text-md-right">Select Month</label>
+                                        <input type="month" id="tower" class="form-control number" name="month" required autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group input-group-sm">
+                                        <input type="submit" class="form-control btn-primary">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        {% if messages %}
+                            <div class="col-8">
+                                {% for message in messages %}
+                                <div class="alert alert-primary">
+                                    <strong>{{ message|escape }}</strong>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.errors %}
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+              {% else %}
+                <div class="row">
+                    <div class="col-1"></div>
+                    <div class="col-4">
+                        <h4 class="text-center">Owner : {{ flat.owner }}</h4>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-center">Tower : {{ flat.tower }}</h4>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="text-center">Flat : {{ flat.flat }}</h4>
+                    </div>
+                </div>
+                  <table class="table table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Tower</th>
+                        <th scope="col">Flat</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Adjustment</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for m in object_list %}
+                          <tr>
+                            <th scope="row">{{ m.flat.tower }}</th>
+                            <td>{{ m.flat.flat }}</td>
+                            <td>{{ m.flat.owner }}</td>
+                            <td>{{ m.get_Adjustment|floatformat:2 }}</td>
+                          </tr>
+                      {% endfor %}
+                          <tr style="border-top: 2px solid #333;">
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td><strong>{{ total|floatformat:0 }}</strong></td>
+                          </tr>
+                    </tbody>
+                  </table>
+              {% endif %}
+            </div>
+        </div>
+      </div>
+    </div>
+</main>
+{% endblock %}
