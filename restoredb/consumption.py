@@ -39,6 +39,6 @@ d.loc[d['deduction_status'] == "N", ['deduction_status']] = 1
 
 d.loc[d['deduction_status'] == "Y", ['deduction_status']] = 2
 
-#d.to_sql('users_consumption', conn, if_exists="append")
+d.to_sql('users_consumption', conn, if_exists="append")
 
-#conn.commit()
+conn.commit()

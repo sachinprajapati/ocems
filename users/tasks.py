@@ -33,9 +33,11 @@ def ReadEbAndDG():
 	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
 	#c = cur.execute("SELECT flat_pkey, Utility_KWH as eb, DG_KWH as dg FROM [EMS].[dbo].[TblConsumption] where flat_pkey=728")
 	#c = c.fetchall()
-	c = getFlatData()
+	#c = getFlatData()
+	c = {"data": [{"flat_id": 728, "eb": 108685, "dg": 8521.09}, {"flat_id": 729, "eb": 14005, "dg": 295.1794}]}
 	if c:
 		l = []
+		sms = []
 		for i in c["data"]:
 			cp = Consumptions(**i)
 			cons = Consumption.objects.get(flat__id=cp.flat_id)
@@ -50,10 +52,28 @@ def ReadEbAndDG():
 				eb = cp.eb
 				dg = cp.dg
 				dtnow = timezone.now()
+				if is_connected():
+					if amt_left < 500 and amt_left > 0:
+						mt = MessageTemplate.objects.get(m_type=2)
+						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+							text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, amt_left)
+							mt.SendSMS(text, cons.flat)
+							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+						else:
+							print(mt, "message already send")
+					elif amt_left < 0:
+						mt = MessageTemplate.objects.get(m_type=3)
+						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, amt_left)
+							mt.SendSMS(text, cons.flat)
+							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+						else:
+							print(mt, "message already send")
 				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, last_deduction_dt=dtnow, deduction_status=2)
 			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
-				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status  = 1)
+				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status = 1)
 				# cons.save()
+		SentMessage.objects.bulk_create(sms)
 		#Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
 

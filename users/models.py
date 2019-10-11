@@ -113,7 +113,7 @@ class Recharge(models.Model):
 	def save(self, *args, **kwargs):
 	    mt = MessageTemplate.objects.get(m_type=1)
 	    text = mt.text.format(self.flat.owner, self.flat.tower, self.flat.flat, self.recharge, self.amt_left+self.recharge)
-	    mt.sendMessage(text, self)
+	    mt.sendMessage(text, self.flat)
 	    super(Recharge, self).save(*args, **kwargs)
 
 class MonthlyBill(models.Model):
@@ -270,14 +270,16 @@ class MessageTemplate(models.Model):
 	def __str__(self):
 		return '{} - {}'.format(self.get_m_type_display(), self.text)
 
-	def sendMessage(self, text, recharge):
+	def sendMessage(self, text, flat):
 		if is_connected():
-			print("in connected")
-			sm = SentMessage(flat=recharge.flat, m_type=self, text=text)
+			self.SendSMS(text, flat)
+			sm = SentMessage(flat=flat, m_type=self, text=text)
 			sm.save()
 		else:
-			print("in else ")
 			print("internet is not working")
+
+	def SendSMS(self, text, flat):
+		print("sending message to ", flat, "mesage is -", text)
 
 
 class SentMessage(models.Model):
