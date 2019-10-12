@@ -57,7 +57,7 @@ $(document).ready(function(){
                     $('p.phone').text(data['phone']);
                     $('p.email').text(data['email']);
                     $('p.meter_sr').text(data['meter_sr']);
-                    $('p.amt_left').text(data['amt_left']);
+                    $('p.amt_left').text(parseFloat(data['amt_left']).toFixed(2));
                     $('p.total_eb').text(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
                     $('p.start_eb').text(parseFloat(data['start_eb']));
                     $('p.consumed_eb').text(parseFloat(data['ng_eb']).toFixed(2));

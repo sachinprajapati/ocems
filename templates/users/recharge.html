@@ -67,7 +67,7 @@ $(document).ready(function(){
                     $("#phone").val(data['phone']);
                     $("#eb").val((parseFloat(data['ng_eb'])+parseFloat(data['start_eb'])).toFixed(2));
                     $("#dg").val(parseFloat((data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
-                    $("#left").val(data['amt_left']);
+                    $("#left").val(parseFloat(data['amt_left']).toFixed(2));
                     $("#flat_pkey").val(data['flat']);  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
