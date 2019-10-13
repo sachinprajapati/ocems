@@ -263,3 +263,11 @@ class BillAdjusmentView(SuccessMessageMixin, ListView):
 	# 		context["choose_date"] = True
 	# 	print(len(context['object_list']))
 	# 	return context
+
+@method_decorator(staff_member_required, name="dispatch")
+class UpdateMaintanceView(SuccessMessageMixin, UpdateView):
+	model = DeductionAmt
+
+
+def Design(request):
+	return render(request, 'users/recharge_success.html', {})

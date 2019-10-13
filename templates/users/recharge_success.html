@@ -41,6 +41,10 @@ body {
     background-color: #f6f6f6;
 }
 
+tr{
+    line-height: 1.1;
+}
+
 .body-wrap {
     background-color: #f6f6f6;
     width: 10%;
@@ -217,12 +221,11 @@ a {
     Styles for the billing table
 ------------------------------------- */
 .invoice {
-    margin: 10px auto;
+    margin: 5px auto;
     text-align: left;
-    width: 80%;
 }
 .invoice td {
-    padding: 5px 0;
+    padding: 2px 0;
 }
 .invoice .invoice-items {
     width: 100%;
@@ -271,7 +274,7 @@ a {
 }
 
 .terms li{
-	font-size: 8px;
+	font-size: 9px;
 } 
 	</style>
 
@@ -289,7 +292,7 @@ a {
                                 <tbody><tr>
                                     <td class="content-block">
                                         <img src="{% static 'img/orange.png' %}" height="70" width="180">
-                                        <pre style="font-size: 12px;">GH-4, Ahinsa Khand-1, Indirapuram, Ghaziabad
+                                        <pre style="font-size: 13px;">GH-4, Ahinsa Khand-1, Indirapuram, Ghaziabad
 Phone No: 8800393022, 
 Email Id: orangecounty.csk@gmail.com
 										</pre>
@@ -298,11 +301,13 @@ Email Id: orangecounty.csk@gmail.com
                                 <tr>
                                     <td class="content-block">
                                         <table class="invoice">
-                                            <tbody><tr>
+                                            <tbody>
+                                            <tr><td>Meter Serial No. :- {{ flat.meter_sr }}</td></tr>
+                                            <tr><td>Received With Thanks :- {{ flat.owner }}</td></tr>
+                                            <tr>
                                                 <td>
-                                                	Owner	:	{{ flat.owner }}<span style="float: right;">Meter Serial : {{ flat.meter_sr }}</span><br>
-                                                	Tower	:	{{ flat.tower }}<span style="float: right;">Flat : {{ flat.flat }}</span><br>
-                                                	EB	:	{{ flat.consumption.eb|floatformat:2 }}<span style="float: right;">DG : {{ flat.consumption.dg|floatformat:2 }}</span><br>
+                                                	Tower	:-	{{ flat.tower }}<span style="float: right;">Flat :- {{ flat.flat }}</span><br>
+                                                	EB	:-	{{ flat.consumption.eb|floatformat:2 }}<span style="float: right;">DG :- {{ flat.consumption.dg|floatformat:2 }}</span><br>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -310,15 +315,15 @@ Email Id: orangecounty.csk@gmail.com
                                                     <table class="invoice-items" cellpadding="0" cellspacing="0">
                                                         <tbody>
                                                         <tr>
-                                                            <td>Previous Amount</td>
+                                                            <td>Previous Balance</td>
                                                             <td class="alignright">{{ prevamt|floatformat:2 }}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Thanks for Recharge of :</td>
+                                                            <td>Current Recharge :</td>
                                                             <td class="alignright">{{ recharge_amt }}</td>
                                                         </tr>
                                                          <tr>
-                                                            <td>Your Total Amount is :</td>
+                                                            <td>Current Balance :</td>
                                                             <td class="alignright">{{ flat.consumption.amt_left|floatformat:2 }}</td>
                                                         </tr>
                                                         <!-- <tr class="total">

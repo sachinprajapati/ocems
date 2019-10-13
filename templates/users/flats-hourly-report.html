@@ -56,7 +56,7 @@ $(document).ready(function(){
                     $("#phone").val(data['phone']);
                     $("#eb").val(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
                     $("#dg").val(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
-                    $("#left").val(data['amt_left']);
+                    $("#left").val(parseFloat(data['amt_left']).toFixed(2));
                     $("#flat_pkey").val(data['flat']); 
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
