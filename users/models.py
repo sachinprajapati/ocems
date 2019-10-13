@@ -283,10 +283,12 @@ class MessageTemplate(models.Model):
 			sm = SentMessage(flat=flat, m_type=self, text=text)
 			sm.save()
 		else:
-			print("internet is not working")
+			pass
+			# print("internet is not working")
 
 	def SendSMS(self, text, flat):
-		print("sending message to ", flat, "mesage is -", text)
+		pass
+		#print("sending message to ", flat, "mesage is -", text)
 
 
 class SentMessage(models.Model):
