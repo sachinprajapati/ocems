@@ -74,7 +74,7 @@ class Consumption(models.Model):
 	reset_dt = models.DateTimeField(null=True, blank=True)
 	meter_change_dt = models.DateTimeField(null=True, blank=True)
 	last_modified = models.CharField(max_length=5)
-	last_deduction_dt = models.DateTimeField(auto_now_add=False, auto_now=True)
+	last_deduction_dt = models.DateTimeField()
 	deduction_status = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
 	ng_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Negative Utility KWH")
 	ng_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Negative DG KWH")

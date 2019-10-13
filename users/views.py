@@ -56,6 +56,7 @@ def RechargeView(request):
 						"flat": flat,
 						'recharge_amt' : recharge,
 						"prevamt" : flat.consumption.amt_left-recharge,
+						"dt": timezone.localtime(timezone.now())
 					}
 				return render(request, "users/recharge_success.html", context)
 			else:
@@ -94,6 +95,11 @@ class NegativeBalanceFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
 	queryset = Consumption.objects.filter(amt_left__lt=0).order_by('flat__tower', 'flat__flat')
+
+class PositiveBalanceFlats(ListView):
+	model = Consumption
+	template_name = "users/negative-flats.html"
+	queryset = Consumption.objects.filter(amt_left__gte=0).order_by('flat__tower', 'flat__flat')
 
 class NonDeductionFlats(ListView):
 	model = Consumption

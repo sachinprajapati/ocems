@@ -13,6 +13,7 @@ urlpatterns = [
 	path('flat-hourly-report/', FlatHourlyReport, name="flat_hourly_report"),
 	path('flat-maintance-report/', FlatMaintanceReport, name="flat_maintance_report"),
 	path('negative-balance-flats/', NegativeBalanceFlats.as_view(), name="negative_balance_flats"),
+	path('positive-balance-flats/', PositiveBalanceFlats.as_view(), name="positive_balance_flats"),
 	path('non-deduction-flats/', NonDeductionFlats.as_view(), name="non_deduction_flats"),
 	path('daily-recharge-report/', DailyRechargeReport, name="daily_recharge_report"),
     path('mothly-recharge-report/', MonthlyRechargeReport, name="monthly_recharge_report"),
@@ -20,5 +21,5 @@ urlpatterns = [
 	path('meter-change/', MeterChangeView.as_view(), name="meter_change"),
 	path('bill-adjustment/', BillAdjusmentView.as_view(), name="bill_adjustment"),
 	path('Change-Mantance/', UpdateMaintanceView.as_view(), name="change_maintance"),
-	# path('design/', Design, name="design"),
+	path('design/', Design, name="design"),
 ]

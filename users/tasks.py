@@ -27,7 +27,7 @@ def getFlatData():
 		
 
 
-@periodic_task(run_every=crontab(minute='*/5'))
+@periodic_task(run_every=crontab(minute='*/2'))
 def ReadEbAndDG():
 	print("ReadEbAndDG")
 	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
