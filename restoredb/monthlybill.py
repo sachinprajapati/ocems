@@ -1,13 +1,11 @@
 import chardet
 import pandas as pd
-import sqlite3
 import pytz
+from sqlalchemy import create_engine
+
+conn = create_engine('postgresql://sachin:admin123@localhost:5432/ocems')
 
 local = pytz.timezone('Asia/Kolkata')
-
-conn = sqlite3.connect("db.sqlite3")
-
-curr = conn.cursor()
 
 
 with open("TblMonthlyBill.csv", 'rb') as f:
@@ -30,6 +28,7 @@ d['start_dt'] = pd.to_datetime(d['start_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_
 
 d['end_dt'] = pd.to_datetime(d['end_dt'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(local).dt.tz_convert(pytz.utc)
 
-d.to_sql('users_monthlybill', conn, if_exists="append")
+d.drop(d.loc[d['flat_id'] == 950].index, inplace=True)
+d.drop(d.loc[d['flat_id'] == 840].index, inplace=True)
 
-conn.commit()
+d.to_sql('users_monthlybill', conn, if_exists="append")

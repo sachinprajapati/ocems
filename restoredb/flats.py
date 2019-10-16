@@ -1,10 +1,10 @@
 import chardet
 import pandas as pd
 import sqlite3
+from sqlalchemy import create_engine
+conn = create_engine('postgresql://sachin:admin123@localhost:5432/ocems')
 
-conn = sqlite3.connect("db.sqlite3")
-
-curr = conn.cursor()
+#conn = sqlite3.connect("db.sqlite3")
 
 
 with open("TblFlat.csv", 'rb') as f:
@@ -29,5 +29,3 @@ d.loc[d['basis'] == "N", 'basis'] = 1
 d.loc[d['basis'] == "Y", 'basis'] = 2
 
 d.to_sql('users_flats', conn, if_exists='append')
-
-conn.commit()

@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_extensions',
     'djcelery',
-    'django_windows_tools',
 ]
 
 MIDDLEWARE = [
@@ -82,10 +81,21 @@ WSGI_APPLICATION = 'ocems.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'ocems',
+        'USER': 'sachin',
+        'PASSWORD': 'admin123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -93,8 +103,8 @@ DATABASES = {
 try:
     conn = pyodbc.connect(
     "Driver={SQL Server};"
-    "Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
-    #"Server=SACHIN-PC;"
+    #"Server=DESKTOP-6H8OE2G\WINCCFLEX2014;"
+    "Server=SACHIN-PC;"
     "Database=EMS;"
     "Trusted_Connection=yes;"
     )

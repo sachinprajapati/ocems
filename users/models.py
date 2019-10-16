@@ -102,7 +102,7 @@ class Recharge(models.Model):
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
 	recharge = models.PositiveIntegerField()
 	Type = models.PositiveIntegerField(choices=RECHARGE_TYPE, null=True, blank=True)
-	chq_dd = models.PositiveIntegerField(null=True, blank=True)
+	chq_dd = models.CharField(max_length=255, null=True, blank=True)
 	eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility KWH")
 	dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG KWH")
 	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
