@@ -82,14 +82,20 @@ def LogReading():
 	Reading.objects.bulk_create(readings)
 
 
-@periodic_task(run_every=crontab(minute=0, hour=0))
+@periodic_task(run_every=crontab(minute=28, hour=0))
 def MaintanceFixed():
 	print("MaintanceFixed")
 	c = list(Consumption.objects.all())
 	maint = []
 	for i in c:
+		last = Maintance.objects.filter(flat=i.flat).order_by("-dt")[0].dt
+		dt_now = timezone.now()
+		while last <= dt_now:
+			last = (last+timedelta(days=1))
+			print(last.strftime("%d/%m/%y %H:%M %p"))
 		maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(), famt=i.flat.getFixed()))
 		i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
+		break
 
-	Maintance.objects.bulk_create(maint)
-	Consumption.objects.bulk_update(c, ['amt_left'])
+	# Maintance.objects.bulk_create(maint)
+	# Consumption.objects.bulk_update(c, ['amt_left'])
