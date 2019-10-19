@@ -7,6 +7,7 @@ app_name = 'users'
 urlpatterns = [
 	path('dashboard/', Dashboard, name="dashboard"),
 	path('recharge/', RechargeView, name="recharge"),
+	path('recharge-receipt/', RechargeReceiptView, name="recharge_receipt"),
 	path("getFlat/", getFlat, name="getFlat"),
 	path('bill/', getBillView, name="flat_bill"),
 	path('flat-recharge-report/', FlatRechargeReport, name="flat_recharge_report"),

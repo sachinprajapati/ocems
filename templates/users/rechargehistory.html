@@ -85,7 +85,7 @@ $(document).ready(function(){
                 {% if flatrecharge %}
                   <div class="card-header text-center">Recharge Report ( OC Maintance )<i class="fas fa-cloud"></i></div>
                         <div class="card-body">
-                        <form action="" method="post">
+                        <form action="{{ url }}" method="post">
                             {% csrf_token %}
                             <div class="row">
                             <input type="hidden" name="id" id='flat_pkey'>

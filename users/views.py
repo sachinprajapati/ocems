@@ -64,6 +64,31 @@ def RechargeView(request):
 	context['form'] = form
 	return render(request, 'users/recharge.html', context)
 
+@login_required
+def RechargeReceiptView(request):
+	context = {
+		"args": {"type": "month", "name": "month"},
+		"flatrecharge": True,
+		"url": reverse_lazy('users:recharge_receipt')
+	}
+	context['errors'] = []
+	if request.method == "POST":
+		data = request.POST
+		print("data is", data)
+		fl = Flats.objects.get(id=data.get("id"))
+		print("flat is ", fl)
+		rch = Recharge.objects.filter(flat=fl).order_by("-dt")[0]
+		context = {
+			"flat": fl,
+			'recharge_amt' : rch.recharge,
+			"prevamt" : rch.amt_left,
+			"dt": rch.dt
+		}
+		return render(request, "users/recharge_success.html", context)
+	return render(request, 'users/rechargehistory.html', context)
+
+
+
 @login_required()
 def getFlat(request):
 	if request.method == "POST":
