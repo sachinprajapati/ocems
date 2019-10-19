@@ -13,6 +13,7 @@ from ocems.settings import conn
 
 import urllib.request
 import json
+import pytz
 
 cur = conn.cursor()
 
@@ -90,12 +91,12 @@ def MaintanceFixed():
 	for i in c:
 		last = Maintance.objects.filter(flat=i.flat).order_by("-dt")[0].dt
 		dt_now = timezone.now()
+		consumed = 0
 		while last <= dt_now:
-			last = (last+timedelta(days=1))
-			print(last.strftime("%d/%m/%y %H:%M %p"))
-		maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(), famt=i.flat.getFixed()))
-		i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
-		break
-
-	# Maintance.objects.bulk_create(maint)
-	# Consumption.objects.bulk_update(c, ['amt_left'])
+			last_local = timezone.localtime(last)
+			if not Maintance.objects.filter(flat=i.flat, dt__year=last_local.year, dt__month=last_local.month, dt__day=last_local.day).exists():
+				maint.append(Maintance(flat=i.flat, mrate=i.flat.getMRate(), mcharge=i.flat.getMaintance(), famt=i.flat.getFixed(), dt=last.astimezone(pytz.utc)))
+				i.amt_left = float(i.amt_left)-i.flat.getMFTotal()
+			last = last+timedelta(days=1)
+	Maintance.objects.bulk_create(maint)
+	Consumption.objects.bulk_update(c, ['amt_left'])
