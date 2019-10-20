@@ -77,11 +77,18 @@ def ReadEbAndDG():
 				# cons.save()
 		#Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
+@periodic_task(run_every=crontab(minute='*/10'))
+def WriteFlatStatus():
+	c = Consumption.objects.filter(flat__status=1)
+	cur.executemany("update TblConsumption set status=? where flat_pkey=?", [(i.status, i.flat_id) for i in c])
+	conn.commit()
+
+
 
 @periodic_task(run_every=crontab(hour="*", minute=0))
 def LogReading():
 	print("LogReading")
-	c = Consumption.objects.all()
+	c = Consumption.objects.filter(flat__status=1)
 	readings = []
 	for i in c:
 		da = DeductionAmt.objects.get(tower=i.flat.tower)
