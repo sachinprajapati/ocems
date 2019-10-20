@@ -68,7 +68,16 @@ $(document).ready(function(){
                     $("#eb").val((parseFloat(data['ng_eb'])+parseFloat(data['start_eb'])).toFixed(2));
                     $("#dg").val(parseFloat((data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
                     $("#left").val(parseFloat(data['amt_left']).toFixed(2));
-                    $("#flat_pkey").val(data['flat']);  
+                    $("#flat_pkey").val(data['flat']);
+                    if(data['status'] == 0){
+                        $("#status").val("Balance");
+                    }else if(data['status'] == 1){
+                        $("#status").val("Low Balance");
+                    }else if(data['status'] == 2){
+                        $("#status").val("Negative Balance");
+                    }else if(data['status'] == 3){
+                        $("#status").val("Power Cut");
+                    }  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -161,6 +170,14 @@ $(document).ready(function() {
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Status</label>
+                                            <input type="text" id="status" class="form-control" required autofocus  disabled="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-form-label">Recharge Type</label>
                                             <select class="form-control" name="Type" id="recharge-type">
                                                 <option value="1">Cash</option>
@@ -169,8 +186,6 @@ $(document).ready(function() {
                                             </select>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
                                             <label for="email_address" class="col-md-6 col-form-label">Recharge Amount</label>
@@ -188,7 +203,7 @@ $(document).ready(function() {
                                     <button type="submit" id="submit-form" class="btn btn-primary btn-block">Recharge</button>
                                 </div>
                             </div>
-                    	</div>
+                        </div>
                             {% if errors %}
                                 {% for e in errors %}
                                     <div class="alert alert-danger">

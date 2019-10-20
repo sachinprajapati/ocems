@@ -61,6 +61,13 @@ class Flats(models.Model):
 	def getMFTotal(self):
 		return self.getMaintance()+self.getFixed()
 
+CONSUMPTION_STATUS = (
+	(0, _("Enough Balance")),
+    (1, _("Low Balance")),
+	(2, _("Negative Balance")),
+	(3, _("Power Cut"))
+)
+
 
 class Consumption(models.Model):
 	dt = models.DateTimeField()
@@ -70,7 +77,7 @@ class Consumption(models.Model):
 	start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start Utility KWH")
 	start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start DG KWH")
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
-	status = models.PositiveIntegerField(null=True, blank=True)
+	status = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
 	reset_dt = models.DateTimeField(null=True, blank=True)
 	meter_change_dt = models.DateTimeField(null=True, blank=True)
 	last_modified = models.CharField(max_length=5)

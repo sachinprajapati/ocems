@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .models import *
+from .tasks import *
+from ocems.settings import conn
 
 
 class RechargeForm(ModelForm):
@@ -32,6 +34,12 @@ class RechargeForm(ModelForm):
 					obj.deduction_status = 2
 				elif obj.deduction_status == "N":
 					obj.deduction_status = 1
+				status = getConsumptionStatus(obj.amt_left)
+				if conn:
+					cur = conn.cursor()
+					cur.execute("update [TblConsumption] set status=? where flat_pkey=?", [status, m.flat.id])
+					conn.commit()
+				obj.status = status
 				obj.save()
 				m.save()
 				return m
@@ -56,10 +64,6 @@ class SendSMS(forms.Form):
 
 
 class MeterChangeForm(ModelForm):
-	# flat_id = forms.IntegerField()
-	# New_EB = forms.IntegerField()
-	# New_Dg = forms.IntegerField()
-	# Meter_Serial_Number = forms.CharField(required=False)
 
 	class Meta:
 		model = MeterChange

@@ -26,9 +26,17 @@ def getFlatData():
 		print(e)
 		return False
 		
+def getConsumptionStatus(amt):
+	if amt > 500:
+		return 0
+	elif amt <= 500 and amt > 0:
+		return 1
+	elif amt <= 0 and amt > -200:
+		return 2
+	else:
+		return 3
 
-
-@periodic_task(run_every=crontab(minute='*/2'))
+@periodic_task(run_every=crontab(minute='*/10'))
 def ReadEbAndDG():
 	print("ReadEbAndDG")
 	Consumptions = namedtuple("Consumptions", ['flat_id', 'eb', 'dg'])
@@ -47,24 +55,23 @@ def ReadEbAndDG():
 				amt_left = float(cons.amt_left)-consumed
 				ng_eb = cp.eb-float(cons.start_eb)
 				ng_dg = cp.dg-float(cons.start_dg)
-				eb = cp.eb
-				dg = cp.dg
+				status = getConsumptionStatus(amt_left)
 				dtnow = timezone.now()
-				if is_connected():
-					if amt_left < 500 and amt_left > 0:
-						mt = MessageTemplate.objects.get(m_type=2)
-						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-							text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, amt_left)
-							mt.SendSMS(text, cons.flat)
-							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-					elif amt_left < 0:
-						mt = MessageTemplate.objects.get(m_type=3)
-						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, amt_left)
-							mt.SendSMS(text, cons.flat)
-							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-					SentMessage.objects.bulk_create(sms)
-				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, deduction_status=2)
+				# if is_connected():
+				# 	if amt_left < 500 and amt_left > 0:
+				# 		mt = MessageTemplate.objects.get(m_type=2)
+				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+				# 			text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, amt_left)
+				# 			mt.SendSMS(text, cons.flat)
+				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+				# 	elif amt_left < 0:
+				# 		mt = MessageTemplate.objects.get(m_type=3)
+				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+				# 			text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, amt_left)
+				# 			mt.SendSMS(text, cons.flat)
+				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+				# 	SentMessage.objects.bulk_create(sms)
+				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, deduction_status=2, status=status)
 			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
 				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status = 1)
 				# cons.save()
@@ -83,14 +90,14 @@ def LogReading():
 	Reading.objects.bulk_create(readings)
 
 
-@periodic_task(run_every=crontab(minute=28, hour=0))
+@periodic_task(run_every=crontab(minute=5, hour=0))
 def MaintanceFixed():
 	print("MaintanceFixed")
-	c = list(Consumption.objects.all())
+	c = list(Consumption.objects.filter(flat__status=1))
 	maint = []
 	for i in c:
 		last = Maintance.objects.filter(flat=i.flat).order_by("-dt")[0].dt
-		dt_now = timezone.now()
+		dt_now = timezone.localtime(timezone.now())
 		consumed = 0
 		while last <= dt_now:
 			last_local = timezone.localtime(last)
