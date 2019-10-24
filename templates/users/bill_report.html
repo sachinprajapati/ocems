@@ -112,7 +112,7 @@
 				    <tr>
 				      <th scope="row">5</th>
 				      <td colspan="5">Misc. Charges(*)</td>
-				      <td>0.0</td>
+				      <td>{{ bill.TotalDebits }}</td>
 				    </tr>
 				  </tbody>
 				</table>
@@ -132,6 +132,15 @@
 				<hr/>
 				<div>
 					<p>E&OE. This is a computer generated report and any disputes regarding the same shall be registered within 7 days of generation.</p>
+					{% if bill.Debits %}
+						<hr/>
+						<p>Misc. Charges Description</p>
+						<ul style="font-size: 10px;;">
+							{% for d in bill.Debits %}
+								<li>{{ d.remarks }} - {{ d.debit_amt }}</li>
+							{% endfor %}
+						</ul>
+					{% endif %}
 				</div>
 			</div>
 		</div>

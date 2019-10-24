@@ -165,8 +165,14 @@ class MonthlyBill(models.Model):
 			f['famt__sum'] = 0
 		return float(f['famt__sum'])
 
+	def Debits(self):
+		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
+
+	def TotalDebits(self):
+		return self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
+
 	def get_TotalUsed(self):
-		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()
+		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()+self.TotalDebits()
 		return float(t)
 
 	def get_RechargeInMonth(self):
