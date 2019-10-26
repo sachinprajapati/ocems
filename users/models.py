@@ -169,7 +169,10 @@ class MonthlyBill(models.Model):
 		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
 
 	def TotalDebits(self):
-		return self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
+		deits = self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
+		if not deits:
+			deits = 0
+		return deits
 
 	def get_TotalUsed(self):
 		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()+self.TotalDebits()

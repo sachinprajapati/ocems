@@ -137,7 +137,7 @@
 						<p>Misc. Charges Description</p>
 						<ul style="font-size: 10px;;">
 							{% for d in bill.Debits %}
-								<li>{{ d.remarks }} - {{ d.debit_amt }}</li>
+								<li>{{ d.remarks|title }} - {{ d.debit_amt }}</li>
 							{% endfor %}
 						</ul>
 					{% endif %}
