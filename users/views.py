@@ -161,7 +161,7 @@ def DailyRechargeReport(request):
 		if data.get('date'):
 			try:
 				date = datetime.strptime(data['date'], "%Y-%m-%d").date()
-				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year, dt__day=date.day)
+				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year, dt__day=date.day).order_by("-dt")
 				total = data.aggregate(Sum('recharge'))
 				context = {
 					"recharge" : data,
@@ -254,7 +254,7 @@ def FlatMaintanceReport(request):
 
 class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 	template_name = 'users/send_sms.html'
-	form_class = SendSMS
+	form_class = SendSMSForm
 	success_url = '/send-sms/'
 	success_message = 'Sent Message to %(id)s'
 
@@ -270,30 +270,31 @@ class MeterChangeView(SuccessMessageMixin, CreateView):
 	success_url = reverse_lazy('users:meter_change')
 	success_message = "%(flat)s's Meter Changed Successfully"
 
-@method_decorator(staff_member_required, name='dispatch')
-class BillAdjusmentView(SuccessMessageMixin, ListView):
-	template_name = 'users/bill_adjustment.html'
-	success_url = reverse_lazy('users:meter_change')
-	success_message = "%(flat)s's Meter Changed Successfully"
-	model = MonthlyBill
-	# paginate_by = 10
+# @method_decorator(staff_member_required, name='dispatch')
+# class BillAdjusmentView(SuccessMessageMixin, ListView):
+# 	template_name = 'users/bill_adjustment.html'
+# 	success_url = reverse_lazy('users:meter_change')
+# 	success_message = "%(flat)s's Meter Changed Successfully"
+# 	model = MonthlyBill
+# 	# paginate_by = 10
 
-	def get_queryset(self):
-		try:
-			date = datetime.strptime(self.request.GET.get('month'), "%Y-%m").date()
-			print("date is ", date)
-			result = [i for i in MonthlyBill.objects.filter(year=date.year, month=date.month) if i.get_Adjustment() < 0]
-		except Exception as e:
-			print(e)
-			return None
-		return result
+# 	def get_queryset(self):
+# 		try:
+# 			date = datetime.strptime(self.request.GET.get('month'), "%Y-%m").date()
+# 			print("date is ", date)
+# 			result = MonthlyBill.objects.filter(year=date.year, month=date.month)
+# 		except Exception as e:
+# 			print(e)
+# 			return None
+# 		return result
 
-	# def get_context_data(self, **kwargs):
-	# 	context = super().get_context_data(**kwargs)
-	# 	if not self.request.GET.get('month'):
-	# 		context["choose_date"] = True
-	# 	print(len(context['object_list']))
-	# 	return context
+def BillAdjusmentView(request):
+	date = datetime.now()
+	context = {
+		"object_list": MonthlyBill.objects.filter(year=date.year, month=date.month)[:100],
+	}
+	print(len(context["object_list"]))
+	return render(request, 'users/bill_adjustment.html', context)
 
 @method_decorator(staff_member_required, name="dispatch")
 class UpdateMaintanceView(SuccessMessageMixin, UpdateView):
@@ -302,3 +303,20 @@ class UpdateMaintanceView(SuccessMessageMixin, UpdateView):
 
 def Design(request):
 	return render(request, 'users/recharge_success.html', {})
+
+@method_decorator(staff_member_required, name="dispatch")
+class DebitView(SuccessMessageMixin, CreateView):
+	model = Debit
+	fields = ["flat", "debit_amt", "remarks"]
+	success_url = reverse_lazy('users:debit')
+	success_message = "%(debit_amt)s successfully debited from %(flat)s"
+
+	def form_valid(self, form):
+		print("instance is", form.instance)
+		cons = Consumption.objects.get(flat=form.instance.flat)
+		form.instance.eb = cons.eb
+		form.instance.dg = cons.dg
+		form.instance.amt_left = float(cons.amt_left)
+		cons.amt_left -= form.instance.debit_amt
+		cons.save()
+		return super().form_valid(form)

@@ -20,7 +20,8 @@ urlpatterns = [
     path('mothly-recharge-report/', MonthlyRechargeReport, name="monthly_recharge_report"),
 	path('send-sms/', SendSMSView.as_view(), name="send_sms"),
 	path('meter-change/', MeterChangeView.as_view(), name="meter_change"),
-	path('bill-adjustment/', BillAdjusmentView.as_view(), name="bill_adjustment"),
+	path('bill-adjustment/', BillAdjusmentView, name="bill_adjustment"),
 	path('Change-Mantance/', UpdateMaintanceView.as_view(), name="change_maintance"),
+	path('debit/', DebitView.as_view(), name="debit"),
 	path('design/', Design, name="design"),
 ]

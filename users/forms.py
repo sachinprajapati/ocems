@@ -48,7 +48,7 @@ class RechargeForm(ModelForm):
 			return False
 
 
-class SendSMS(forms.Form):
+class SendSMSForm(forms.Form):
 	flat_id = forms.IntegerField()
 	message = forms.CharField(widget=forms.Textarea())
 

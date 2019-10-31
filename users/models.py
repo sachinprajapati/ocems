@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models import Sum
 import pytz
 import socket
+import requests
 
 def dt_now():
 	dt = timezone.now()
@@ -135,8 +136,8 @@ class MonthlyBill(models.Model):
 	cls_amt = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Closing Amount")
 	eb_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility Rate")
 	dg_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG Rate")
-	start_dt = models.DateTimeField()
-	end_dt = models.DateTimeField(null=True, blank=True)
+	start_dt = models.DateTimeField(auto_now_add=True)
+	end_dt = models.DateTimeField(null=True, blank=True, auto_now=True)
 
 	def __str__(self):
 		return '{} month {} year {}'.format(self.flat, self.month, self.year)
@@ -303,8 +304,13 @@ class MessageTemplate(models.Model):
 			# print("internet is not working")
 
 	def SendSMS(self, text, flat):
-		pass
-		#print("sending message to ", flat, "mesage is -", text)
+		#URL = "https://www.txtguru.in/imobile/api.php"
+		"""PARAMS = {'username': 'orangecounty.csk',
+          'password': '86617614',
+          'source': 'OCAOAM',
+          'dmobile': '919555582807, 919650362606',
+          'message': 'Recharge Success'}"""
+		#r = requests.get(url = URL, params = PARAMS)
 
 
 class SentMessage(models.Model):

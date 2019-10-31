@@ -193,6 +193,7 @@ $(document).ready(function(){
                         <th scope="col">Tower</th>
                         <th scope="col">Flat</th>
                         <th scope="col">Recharge Type</th>
+                        <th scope="col">Cheque No.</th>
                         <th scope="col">Recharge Amount</th>
                       </tr>
                     </thead>
@@ -205,10 +206,12 @@ $(document).ready(function(){
                             <td>{{ r.flat.tower|floatformat:0 }}</td>
                             <td>{{ r.flat.flat|floatformat:0 }}</td>
                             <td>{{ r.get_Type_display }}</td>
+                            <td>{% if r.chq_dd %}{{ r.chq_dd }}{% endif %}</td>
                             <td>{{ r.recharge|floatformat:0 }}</td>
                           </tr>
                       {% endfor %}
                           <tr style="border-top: 2px solid #333;">
+                              <td></td>
                               <td></td>
                               <td></td>
                               <td></td>
