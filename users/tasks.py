@@ -132,6 +132,6 @@ def Billing():
 		da = DeductionAmt.objects.get(tower=b.flat.tower)
 		MonthlyBill.objects.filter(id=b.id).update(end_eb=reading.eb, end_dg=reading.dg, cls_amt=b.flat.consumption.amt_left)
 		create.append(MonthlyBill(flat=b.flat, month=next_dt.month, year=next_dt.year, start_eb=reading.eb, \
-			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=b.flat.consumption.amt_left, eb_price=float(da.eb_price), \
+			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=b.flat.consumption.amt_left, cls_amt=0, eb_price=float(da.eb_price), \
 				dg_price=float(da.dg_price)))
 	MonthlyBill.objects.bulk_create(create)
