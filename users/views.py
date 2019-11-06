@@ -256,11 +256,11 @@ class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 	template_name = 'users/send_sms.html'
 	form_class = SendSMSForm
 	success_url = '/send-sms/'
-	success_message = 'Sent Message to %(id)s'
+	success_message = 'Sent Message to %(flat_id)s'
 
-	def form_valid(self, form):
-		form.send_email()
-		return super().form_valid(form)
+	# def form_valid(self, form):
+	# 	print(form)
+	# 	return super().form_valid(form)
 
 
 @method_decorator(staff_member_required, name='dispatch')

@@ -48,9 +48,19 @@ class RechargeForm(ModelForm):
 			return False
 
 
+def SendSMS(text, flat):
+		URL = "https://www.txtguru.in/imobile/api.php"
+		PARAMS = {'username': 'orangecounty.csk',
+          'password': '86617614',
+          'source': 'OCAOAM',
+          'dmobile': '919555582807',
+          'message': text}
+		r = requests.get(url = URL, params = PARAMS)
+
 class SendSMSForm(forms.Form):
 	flat_id = forms.IntegerField()
 	message = forms.CharField(widget=forms.Textarea())
+	balinfo = forms.BooleanField()
 
 	def clean_flat_id(self):
 		try:
@@ -58,9 +68,18 @@ class SendSMSForm(forms.Form):
 		except Exception as e:
 			raise ValidationError(e)
 		return flat
+	
+	def clean_balinfo(self):
+		flat = self.cleaned_data['flat_id']
+		bal = self.cleaned_data['balinfo']
+		if bal:
+			text = "Hi {} your balance is {} of tower {} and flat {}".format(flat.owner, flat.consumption.amt_left, flat.tower, flat.flat)
+			SendSMS(text, flat)
+		return bal
+
 
 	def send_email(self):
-		print("message sent")
+		print(self)
 
 
 class MeterChangeForm(ModelForm):

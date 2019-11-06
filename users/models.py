@@ -304,13 +304,13 @@ class MessageTemplate(models.Model):
 			# print("internet is not working")
 
 	def SendSMS(self, text, flat):
-		#URL = "https://www.txtguru.in/imobile/api.php"
-		"""PARAMS = {'username': 'orangecounty.csk',
+		URL = "https://www.txtguru.in/imobile/api.php"
+		PARAMS = {'username': 'orangecounty.csk',
           'password': '86617614',
           'source': 'OCAOAM',
-          'dmobile': '919555582807, 919650362606',
-          'message': 'Recharge Success'}"""
-		#r = requests.get(url = URL, params = PARAMS)
+          'dmobile': '919555582807',
+          'message': text}
+		r = requests.get(url = URL, params = PARAMS)
 
 
 class SentMessage(models.Model):

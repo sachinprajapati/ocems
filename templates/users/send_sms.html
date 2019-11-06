@@ -87,7 +87,7 @@ $(document).ready(function(){
                     <form action="" method="post">
                         {% csrf_token %}
                         <div class="row">
-                        <input type="hidden" name="id" id='flat_pkey'>
+                        <input type="hidden" name="flat_id" id='flat_pkey'>
                             <div class="col-4">
                                 <div class="form-group input-group-sm">
                                     <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
@@ -135,12 +135,18 @@ $(document).ready(function(){
                                         <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
                                     </div>
                                 </div>
+                                <div class="">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label">Balance Info</label>
+                                        <input type="checkbox" id="left" class="form-control" name="balinfo">
+                                    </div>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-8">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label">Message</label>
-                                        <textarea name="message" class="form-control" cols="40" rows="5" required="" id="id_message"></textarea>
+                                        <textarea name="message" class="form-control" cols="40" rows="5" id="id_message"></textarea>
                                     </div>
                                 </div>
                             </div>
