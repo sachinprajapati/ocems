@@ -185,6 +185,7 @@ $(document).ready(function(){
                   </div>
               {% else %}
                   <table class="table table-hover table-sm">
+                  {% if not month %}
                     <thead>
                       <tr>
                         <th scope="col">Sno.</th>
@@ -221,6 +222,32 @@ $(document).ready(function(){
                               <td><strong>{{ total.recharge__sum|floatformat:0 }}</strong></td>
                           </tr>
                     </tbody>
+                    {% else %}
+                      <thead>
+                        <tr>
+                          <th scope="col">Sno.</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Number of Recharge</th>
+                          <th scope="col">Total Recharge Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for r in recharge %}
+                            <tr>
+                              <th scope="row">{{ forloop.counter }}</th>
+                              <td>{{ r.dtdate }}</td>
+                              <td>{{ r.count }}</td>
+                              <td>{{ r.sum }}</td>
+                            </tr>
+                        {% endfor %}
+                            <tr style="border-top: 2px solid #333;">
+                                <td></td>
+                                <td></td>
+                                <td>{{ count }}</td>
+                                <td><strong>{{ total|floatformat:0 }}</strong></td>
+                            </tr>
+                      </tbody>
+                    {% endif %}
                   </table>
               {% endif %}
             </div>

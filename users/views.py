@@ -13,7 +13,7 @@ from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Func, F
 from django.utils import timezone
 
 from datetime import datetime, timedelta
@@ -183,11 +183,12 @@ def MonthlyRechargeReport(request):
 		if data.get('month'):
 			try:
 				date = datetime.strptime(data['month'], "%Y-%m").date()
-				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year)
-				total = data.aggregate(Sum('recharge'))
+				data = Recharge.objects.filter(dt__month=date.month, dt__year=date.year).annotate(dtdate=Func(F('dt__day'), function='date')).values('dtdate').annotate(sum=Sum('recharge'), count=Count('recharge'))
 				context = {
 					"recharge" : data,
-					"total": total,
+					"total": sum([i['sum'] for i in data]),
+					"count": sum([i['count'] for i in data]),
+					"month": True,
 				}
 			except Exception as e:
 				context['error'] = e
