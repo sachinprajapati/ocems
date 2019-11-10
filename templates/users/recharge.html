@@ -66,7 +66,7 @@ $(document).ready(function(){
                     $("#name").val(data['owner']);
                     $("#phone").val(data['phone']);
                     $("#eb").val((parseFloat(data['ng_eb'])+parseFloat(data['start_eb'])).toFixed(2));
-                    $("#dg").val(parseFloat((data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
+                    $("#dg").val((parseFloat(data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
                     $("#left").val(parseFloat(data['amt_left']).toFixed(2));
                     $("#flat_pkey").val(data['flat']);
                     if(data['status'] == 0){
