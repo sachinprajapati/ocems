@@ -13,7 +13,7 @@ from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.utils import timezone
 
 from datetime import datetime, timedelta
@@ -119,7 +119,7 @@ def getFlat(request):
 class NegativeBalanceFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
-	queryset = Consumption.objects.filter(amt_left__lt=0).order_by('flat__tower', 'flat__flat')
+	queryset = Consumption.objects.filter(amt_left__lt = 0).order_by('flat__tower', 'flat__flat')
 
 class PositiveBalanceFlats(ListView):
 	model = Consumption
@@ -320,3 +320,24 @@ class DebitView(SuccessMessageMixin, CreateView):
 		cons.amt_left -= form.instance.debit_amt
 		cons.save()
 		return super().form_valid(form)
+
+@login_required()
+def SMSReport(request):
+	context = {
+		"args": {"type": "date", "name": "date"}
+	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get('date'):
+			try:
+				date = datetime.strptime(data['date'], "%Y-%m-%d").date()
+				data = SentMessage.objects.filter(dt__month=date.month, dt__year=date.year, dt__day=date.day).order_by("flat__tower", "flat__flat")
+				total = len(data)
+				context = {
+					"recharge" : data,
+					"total": total,
+				}
+			except Exception as e:
+				print(e)
+				context['error'] = e
+	return render(request, 'users/smshistory.html', context)

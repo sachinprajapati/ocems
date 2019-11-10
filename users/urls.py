@@ -23,5 +23,6 @@ urlpatterns = [
 	path('bill-adjustment/', BillAdjusmentView, name="bill_adjustment"),
 	path('Change-Mantance/', UpdateMaintanceView.as_view(), name="change_maintance"),
 	path('debit/', DebitView.as_view(), name="debit"),
+	path('sms-report/', SMSReport, name="sms_report"),
 	path('design/', Design, name="design"),
 ]
