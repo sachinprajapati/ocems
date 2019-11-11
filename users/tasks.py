@@ -16,15 +16,6 @@ import json
 import pytz
 
 #cur = conn.cursor()
-
-def getFlatData():
-	try:
-		response = urllib.request.urlopen('http://192.168.1.5:5000/hello/h', timeout=4)
-		html = response.read()
-		return json.loads(html)
-	except Exception as e:
-		print(e)
-		return False
 		
 def getConsumptionStatus(amt):
 	if amt > 500:
@@ -57,7 +48,7 @@ def ReadEbAndDG():
 				ng_eb = cp.eb-float(cons.start_eb)
 				ng_dg = cp.dg-float(cons.start_dg)
 				status = getConsumptionStatus(amt_left)
-				dtnow = timezone.now()
+				dtnow = timezone.localtime(timezone.now())
 				if is_connected():
 					if amt_left < 500 and amt_left > 0:
 						mt = MessageTemplate.objects.get(m_type=2)
