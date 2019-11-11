@@ -49,7 +49,7 @@ def ReadEbAndDG():
 				ng_dg = cp.dg-float(cons.start_dg)
 				status = getConsumptionStatus(amt_left)
 				dtnow = timezone.localtime(timezone.now())
-				if is_connected():
+				if is_connected() and dtnow.hour > 7:
 					if amt_left < 500 and amt_left > 0:
 						mt = MessageTemplate.objects.get(m_type=2)
 						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
