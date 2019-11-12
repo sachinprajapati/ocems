@@ -62,7 +62,7 @@ def ReadEbAndDG():
 							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, round(amt_left))
 							mt.SendSMS(text, cons.flat)
 							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, deduction_status=2, status=status)
+				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, deduction_status=2, status=status, last_deduction_dt=timezone.now()
 			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
 				status = getConsumptionStatus(float(cons.amt_left))
 				Consumption.objects.filter(flat__id=cp.flat_id).update(deduction_status = 1, status=status)
