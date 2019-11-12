@@ -174,9 +174,13 @@ class MonthlyBill(models.Model):
 		return float(self.dg_price)*float(self.get_dg())
 
 	def get_OtherMaintance(self):
+		if self.flat.tower==17:
+			return None
 		return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
 
 	def get_OtherMaintanceTotal(self):
+		if self.flat.tower == 17:
+			return 0
 		total = 0
 		om = self.get_OtherMaintance()
 		for i in om:
