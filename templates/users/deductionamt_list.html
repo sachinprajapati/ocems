@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #dd-number{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                  <table class="table table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Tower</th>
+                        <th scope="col">Tower Name</th>
+                        <th scope="col">Uitlity KWH Price</th>
+                        <th scope="col">DG Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for i in object_list %}
+                        <tr>
+                          <th scope="row">{{ i.tower }}</th>
+                          <td>{{ i.tower_name }}</td>
+                          <td>{{ i.eb_price|floatformat:2 }}</td>
+                          <td>{{ i.dg_price|floatformat:2 }}</td>
+                          <td><a href="{{ i.get_update_url }}" class="badge badge-primary">Update</a></td>
+                        </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+    </div>
+</main>
+{% endblock %}

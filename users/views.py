@@ -239,6 +239,7 @@ def FlatHourlyReport(request):
 def FlatMaintanceReport(request):
 	context = {
 		"form" : True,
+		"title": "Flat Maintance Report",
 	}
 	if request.method == "POST":
 		data = request.POST
@@ -250,6 +251,26 @@ def FlatMaintanceReport(request):
 				"maintance" : mt,
 				"flat": Flats.objects.get(id=data['id'])
 			}
+	return render(request, 'users/maintance_report.html', context)
+
+@login_required
+def FlatSMSReport(request):
+	context = {
+		"form" : True,
+		"title": "Flat SMS Report",
+	}
+	if request.method == "POST":
+		data = request.POST
+		if data.get("start-date") and data.get("end-date") and data.get("id"):
+			sdate = datetime.strptime(data['start-date'], "%Y-%m-%d").date()
+			edate = datetime.strptime(data['end-date'], "%Y-%m-%d").date() + timedelta(days=1)
+			sms = SentMessage.objects.filter(flat__id=data['id'], dt__range=(sdate, edate)).order_by('dt')
+			context = {
+				"recharge" : sms,
+				"flat": Flats.objects.get(id=data['id']),
+				"recharge": True,
+			}
+			return render(request, 'users/smshistory.html', context)
 	return render(request, 'users/maintance_report.html', context)
 
 
@@ -298,8 +319,16 @@ def BillAdjusmentView(request):
 	return render(request, 'users/bill_adjustment.html', context)
 
 @method_decorator(staff_member_required, name="dispatch")
-class UpdateMaintanceView(SuccessMessageMixin, UpdateView):
+class TowerListView(SuccessMessageMixin, ListView):
 	model = DeductionAmt
+
+
+@method_decorator(staff_member_required, name="dispatch")
+class TowerUpdateView(SuccessMessageMixin, UpdateView):
+	model = DeductionAmt
+	fields = ['eb_price', 'dg_price']
+
+
 
 
 def Design(request):

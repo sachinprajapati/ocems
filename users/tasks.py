@@ -15,7 +15,7 @@ import urllib.request
 import json
 import pytz
 
-cur = conn.cursor()
+#cur = conn.cursor()
 
 def getFlatData():
 	try:
@@ -58,20 +58,19 @@ def ReadEbAndDG():
 				ng_dg = cp.dg-float(cons.start_dg)
 				status = getConsumptionStatus(amt_left)
 				dtnow = timezone.now()
-				# if is_connected():
-				# 	if amt_left < 500 and amt_left > 0:
-				# 		mt = MessageTemplate.objects.get(m_type=2)
-				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-				# 			text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, round(amt_left))
-				# 			mt.SendSMS(text, cons.flat)
-				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-				# 	elif amt_left < 0:
-				# 		mt = MessageTemplate.objects.get(m_type=3)
-				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-				# 			text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, round(amt_left))
-				# 			mt.SendSMS(text, cons.flat)
-				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-					#SentMessage.objects.bulk_create(sms)
+				if is_connected():
+					if amt_left < 500 and amt_left > 0:
+						mt = MessageTemplate.objects.get(m_type=2)
+						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+							text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, round(amt_left))
+							mt.SendSMS(text, cons.flat)
+							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+					elif amt_left < 0:
+						mt = MessageTemplate.objects.get(m_type=3)
+						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, round(amt_left))
+							mt.SendSMS(text, cons.flat)
+							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
 				Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, eb=cp.eb, dg=cp.dg, deduction_status=2, status=status)
 			elif cp.eb < cons.getLastEB() or cp.dg < cons.getLastDG():
 				status = getConsumptionStatus(float(cons.amt_left))
@@ -81,6 +80,7 @@ def ReadEbAndDG():
 				status = getConsumptionStatus(float(cons.amt_left))
 				Consumption.objects.filter(flat__id=cp.flat_id).update(status = status)
 				
+		SentMessage.objects.bulk_create(sms)		
 		#Consumption.objects.bulk_update(l, ['amt_left', 'ng_eb', 'ng_dg', 'eb', 'dg', 'last_deduction_dt'])
 
 @periodic_task(run_every=crontab(minute='*/5'))
@@ -135,3 +135,22 @@ def Billing():
 			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=b.flat.consumption.amt_left, cls_amt=0, eb_price=float(da.eb_price), \
 				dg_price=float(da.dg_price)))
 	MonthlyBill.objects.bulk_create(create)
+
+
+def RefMaintance():
+	c = Consumption.objects.filter(flat__id=754).exclude(flat__tower=17)
+	maint = []
+	for i in c:
+		print(i)
+		last3 = Maintance.objects.filter(flat=i.flat).order_by("-dt")[:3]
+		for m in last3:
+			i.amt_left = float(i.amt_left)+(float(m.mcharge)-i.flat.getMaintance())
+			m.mcharge = i.flat.getMaintance()
+			m.mrate = 1.79
+			maint.append(m)
+		print(i.amt_left)
+	Maintance.objects.bulk_update(maint, ['mcharge', 'mrate'])
+	Consumption.objects.bulk_update(c, ['amt_left'])
+
+def BackMaint():
+	m = Maintance.objects.filter(dt__month=11, dt__year=2019, dt__day=12)

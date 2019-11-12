@@ -3,8 +3,12 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Sum
+from django.urls import reverse
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 import pytz
 import socket
+import calendar
 import requests
 
 def dt_now():
@@ -118,11 +122,26 @@ class Recharge(models.Model):
 	def __str__(self):
 		return '{} recharge {}'.format(self.flat, self.recharge)
 
-	def save(self, *args, **kwargs):
-	    mt = MessageTemplate.objects.get(m_type=1)
-	    text = mt.text.format(self.flat.owner, self.flat.tower, self.flat.flat, self.recharge, self.amt_left+self.recharge)
-	    mt.sendMessage(text, self.flat)
-	    super(Recharge, self).save(*args, **kwargs)
+	# def save(self, *args, **kwargs):
+	#     super(Recharge, self).save(*args, **kwargs)
+
+@receiver(post_save, sender=Recharge, dispatch_uid="update_stock_count")
+def update_stock(sender, instance, created, **kwargs):
+	if created and instance.flat.phone:
+		mt = MessageTemplate.objects.get(m_type=1)
+		text = mt.text.format(instance.flat.owner, instance.flat.tower, instance.flat.flat, instance.recharge, instance.flat.consumption.amt_left)
+		mt.sendMessage(text, instance.flat)
+		print("sending message to ", instance.flat)
+	else:
+		print("cannot send message to ", instance)
+
+
+def get_days(start_dt, end_dt):
+	if not end_dt:
+		end_dt = calendar.monthrange(start_dt.year,start_dt.month)[1]
+		return (end_dt-start_dt.day)+1
+	return end_dt.day-start_dt.day+1
+
 
 class MonthlyBill(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
@@ -154,11 +173,22 @@ class MonthlyBill(models.Model):
 	def get_dgprice(self):
 		return float(self.dg_price)*float(self.get_dg())
 
+	def get_OtherMaintance(self):
+		return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
+
+	def get_OtherMaintanceTotal(self):
+		total = 0
+		om = self.get_OtherMaintance()
+		for i in om:
+			days = get_days(i.start_dt, i.end_dt)
+			total += ((self.flat.flat_size*i.price)*(12/365))*17
+		return total
+
 	def get_TotalMaintance(self):
 		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
 		if not m['mcharge__sum']:
 			m['mcharge__sum'] = 0
-		return float(m['mcharge__sum'])
+		return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))
@@ -173,7 +203,7 @@ class MonthlyBill(models.Model):
 		deits = self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
 		if not deits:
 			deits = 0
-		return deits
+		return deits+self.get_OtherMaintanceTotal()
 
 	def get_TotalUsed(self):
 		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()+self.TotalDebits()
@@ -222,6 +252,9 @@ class DeductionAmt(models.Model):
 
 	def __str__(self):
 		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
+
+	def get_update_url(self):
+		return reverse('users:tower_update', kwargs={'pk': self.pk})
 
 
 
@@ -333,3 +366,13 @@ class Debit(models.Model):
 
 	def __str__(self):
 		return '{} debit amt {} at {}'.format(self.flat, self.amt_left, self.dt)
+
+class OtherMaintance(models.Model):
+	price = models.PositiveIntegerField()
+	name = models.CharField(max_length=255)
+	start_dt = models.DateField()
+	end_dt = models.DateField(null=True, blank=True)
+
+	def __str__(self):
+		return 'from {} to {} of {} price {}'.format(self.start_dt, self.end_dt, self.name, self.price)
+	
