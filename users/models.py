@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.urls import reverse
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -82,7 +82,7 @@ class Consumption(models.Model):
 	start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start Utility KWH")
 	start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start DG KWH")
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
-	status = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
+	status = models.PositiveIntegerField(choices=CONSUMPTION_STATUS, null=True, blank=True)
 	reset_dt = models.DateTimeField(null=True, blank=True)
 	meter_change_dt = models.DateTimeField(null=True, blank=True)
 	last_modified = models.CharField(max_length=5)
@@ -106,7 +106,8 @@ class Consumption(models.Model):
 RECHARGE_TYPE = (
 	(1, _("cash")),
     (2, _("bank")),
-	(3, _("neft"))
+	(3, _("neft")),
+	(4, _("merchant"))
 )
 
 class Recharge(models.Model):
@@ -136,10 +137,14 @@ def update_stock(sender, instance, created, **kwargs):
 		print("cannot send message to ", instance)
 
 
-def get_days(start_dt, end_dt):
+def get_days(start_dt, end_dt, month):
 	if not end_dt:
-		end_dt = calendar.monthrange(start_dt.year,start_dt.month)[1]
-		return (end_dt-start_dt.day)+1
+		end_dt = calendar.monthrange(start_dt.year,month)[1]
+		if start_dt.month == month:
+			start_day = start_dt.day
+		else:
+			start_day = 1
+		return (end_dt-start_day)+1
 	return end_dt.day-start_dt.day+1
 
 
@@ -176,7 +181,18 @@ class MonthlyBill(models.Model):
 	def get_OtherMaintance(self):
 		if self.flat.tower==17:
 			return None
-		return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
+		if self.month<=11 and self.year==2019:
+			return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
+		else:
+			om = OtherMaintance.objects.filter(start_dt__year__lte=self.year)
+			l = []
+			for i in om:
+				if i.end_dt:
+					if i.end_dt.month>=self.month and i.end_dt.year>=self.year:
+						l.append(i)
+				else:
+					l.append(i)
+			return l
 
 	def get_OtherMaintanceTotal(self):
 		if self.flat.tower == 17:
@@ -184,14 +200,15 @@ class MonthlyBill(models.Model):
 		total = 0
 		om = self.get_OtherMaintance()
 		for i in om:
-			days = get_days(i.start_dt, i.end_dt)
-			total += ((self.flat.flat_size*i.price)*(12/365))*17
+			days = get_days(i.start_dt, i.end_dt, self.month)
+			total += ((self.flat.flat_size*i.price)*(12/365))*days
 		return total
 
 	def get_TotalMaintance(self):
 		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
 		if not m['mcharge__sum']:
 			m['mcharge__sum'] = 0
+		# return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
 		return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
@@ -345,7 +362,7 @@ class MessageTemplate(models.Model):
 		PARAMS = {'username': 'orangecounty.csk',
           'password': '86617614',
           'source': 'OCAOAM',
-          'dmobile': '919555582807',
+          'dmobile': '91{}'.format(flat.phone),
           'message': text}
 		r = requests.get(url = URL, params = PARAMS)
 

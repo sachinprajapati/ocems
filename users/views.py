@@ -206,7 +206,7 @@ def FlatRechargeReport(request):
 		print("flat_pkey is ", flat_pkey)
 		if flat_pkey:
 			try:
-				recharge = Recharge.objects.filter(flat__id=flat_pkey)
+				recharge = Recharge.objects.filter(flat__id=flat_pkey).order_by("dt")
 				total = recharge.aggregate(Sum('recharge'))
 				context = {
 					"recharge": recharge,
