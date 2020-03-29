@@ -35,10 +35,10 @@ class RechargeForm(ModelForm):
 				elif obj.deduction_status == "N":
 					obj.deduction_status = 1
 				status = getConsumptionStatus(obj.amt_left)
-				# if conn:
-				# 	cur = conn.cursor()
-				# 	cur.execute("update [TblConsumption] set status=? where flat_pkey=?", [status, m.flat.id])
-				# 	conn.commit()
+				if conn:
+					cur = conn.cursor()
+					cur.execute("update [TblConsumption] set status=? where flat_pkey=?", [status, m.flat.id])
+					conn.commit()
 				obj.status = status
 				obj.save()
 				m.save()
