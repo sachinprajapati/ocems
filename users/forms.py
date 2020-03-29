@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .models import *
+from .tasks import *
+from ocems.settings import conn
 
 
 class RechargeForm(ModelForm):
@@ -32,6 +34,12 @@ class RechargeForm(ModelForm):
 					obj.deduction_status = 2
 				elif obj.deduction_status == "N":
 					obj.deduction_status = 1
+				status = getConsumptionStatus(obj.amt_left)
+				# if conn:
+				# 	cur = conn.cursor()
+				# 	cur.execute("update [TblConsumption] set status=? where flat_pkey=?", [status, m.flat.id])
+				# 	conn.commit()
+				obj.status = status
 				obj.save()
 				m.save()
 				return m
@@ -40,9 +48,20 @@ class RechargeForm(ModelForm):
 			return False
 
 
-class SendSMS(forms.Form):
+def SendSMS(text, flat):
+		URL = "https://www.txtguru.in/imobile/api.php"
+		PARAMS = {'username': 'orangecounty.csk',
+          'password': '86617614',
+          'source': 'OCAOAM',
+          'dmobile': '91{}'.format(flat.phone),
+			#'dmobile': '919555582807',
+          'message': text}
+		r = requests.get(url = URL, params = PARAMS)
+
+class SendSMSForm(forms.Form):
 	flat_id = forms.IntegerField()
 	message = forms.CharField(widget=forms.Textarea())
+	balinfo = forms.BooleanField()
 
 	def clean_flat_id(self):
 		try:
@@ -50,16 +69,21 @@ class SendSMS(forms.Form):
 		except Exception as e:
 			raise ValidationError(e)
 		return flat
+	
+	def clean_balinfo(self):
+		flat = self.cleaned_data['flat_id']
+		bal = self.cleaned_data['balinfo']
+		if bal:
+			text = "Hi {} your balance is {} of tower {} and flat {}".format(flat.owner, flat.consumption.amt_left, flat.tower, flat.flat)
+			SendSMS(text, flat)
+		return bal
+
 
 	def send_email(self):
-		print("message sent")
+		print("send message")
 
 
 class MeterChangeForm(ModelForm):
-	# flat_id = forms.IntegerField()
-	# New_EB = forms.IntegerField()
-	# New_Dg = forms.IntegerField()
-	# Meter_Serial_Number = forms.CharField(required=False)
 
 	class Meta:
 		model = MeterChange

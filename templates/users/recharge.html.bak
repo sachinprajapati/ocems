@@ -8,9 +8,20 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 
+<script type="text/javascript">
+$(document).ready(function() {
+  // Restrict input to digits by using a regular expression filter.
+  $("#submit-form").click(function() {
+    var recharge = $("#recharge_id").val()
+    console.log("recharge amount is"+recharge)
+    if(recharge >= 500){
+        location.reload();
+    }
+  });
+});
+</script>
 <script type="text/javascript">
 (function($) {
   $.fn.inputFilter = function(inputFilter) {
@@ -54,10 +65,19 @@ $(document).ready(function(){
                     $("#hidden-form").css("display","block");
                     $("#name").val(data['owner']);
                     $("#phone").val(data['phone']);
-                    $("#eb").val(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
-                    $("#dg").val(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
+                    $("#eb").val((parseFloat(data['ng_eb'])+parseFloat(data['start_eb'])).toFixed(2));
+                    $("#dg").val(parseFloat((data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
                     $("#left").val(parseFloat(data['amt_left']).toFixed(2));
-                    $("#flat_pkey").val(data['flat']); 
+                    $("#flat_pkey").val(data['flat']);
+                    if(data['status'] == 0){
+                        $("#status").val("Balance");
+                    }else if(data['status'] == 1){
+                        $("#status").val("Low Balance");
+                    }else if(data['status'] == 2){
+                        $("#status").val("Negative Balance");
+                    }else if(data['status'] == 3){
+                        $("#status").val("Power Cut");
+                    }  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -74,21 +94,33 @@ $(document).ready(function(){
 });
 </script>
 
+<script type="text/javascript">
 
+$(document).ready(function() {
+    $('#recharge-type').on('change', function (e) {
+        var optionSelected = $("option:selected", this);
+        var valueSelected = this.value;
+        if(valueSelected == 2){
+            $("#dd-number").css("display","block");
+        }else{
+            $("#dd-number").css("display", "none");
+        }
+    });
+});
 
+</script>
 
 <main class="login-form">
     <div class="cotainer">
         <div class="row justify-content-center">
             <div class="col-md-10">
                 <div class="card">
-                {% if form %}
-                  <div class="card-header text-center">{{ title }} ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                    <div class="card-header text-center">Recharge ( OC Maintance )<i class="fas fa-cloud"></i></div>
                         <div class="card-body">
-                        <form action="" method="post">
+                        <form action="" method="post" target="_blank">
                             {% csrf_token %}
                             <div class="row">
-                            <input type="hidden" name="id" id='flat_pkey'>
+                            <input type="hidden" name="flat" id='flat_pkey' value="">
                                 <div class="col-4">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
@@ -98,7 +130,7 @@ $(document).ready(function(){
                                 <div class="col-4">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label">Flat Number</label>
-                                        <input type="number" id="flat" class="form-control number" name="flat" required autofocus>
+                                        <input type="number" id="flat" class="form-control number" name="flat-no" required autofocus>
                                     </div>
                                 </div>
                             </div>
@@ -136,26 +168,42 @@ $(document).ready(function(){
                                             <input type="number" id="left" class="form-control" name="left" required autofocus disabled="">
                                         </div>
                                     </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Status</label>
+                                            <input type="text" id="status" class="form-control" required autofocus  disabled="">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Start Date</label>
-                                            <input type="date" id="date" class="form-control" name="start-date" required autofocus>
+                                            <label for="email_address" class="col-form-label">Recharge Type</label>
+                                            <select class="form-control" name="Type" id="recharge-type">
+                                                <option value="1">Cash</option>
+                                                <option value="2">Cheque</option>
+                                                <option value="3">NEFT</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">End Date</label>
-                                            <input type="date" id="date" class="form-control" name="end-date" required autofocus>
+                                            <label for="email_address" class="col-md-6 col-form-label">Recharge Amount</label>
+                                            <input type="number" class="form-control number" id="recharge_id" min="500" name="recharge" required autofocus>
+                                        </div>
+                                    </div>
+                                    <div class="col-4" id="dd-number">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Cheque Number</label>
+                                            <input type="number" class="form-control number" name="chq_dd" autofocus>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary btn-block">Cosumption Report</button>
+                                    <button type="submit" id="submit-form" class="btn btn-primary btn-block">Recharge</button>
                                 </div>
                             </div>
-                      </div>
+                        </div>
                             {% if errors %}
                                 {% for e in errors %}
                                     <div class="alert alert-danger">
@@ -163,55 +211,25 @@ $(document).ready(function(){
                                     </div>
                                 {% endfor %}
                             {% endif %}
-                        </form>
-                    </div>
-              {% else %}
-                <div class="row">
-                    <div class="col-1"></div>
-                    <div class="col-4">
-                        <h4 class="text-center">Owner : {{ flat.owner }}</h4>
-                    </div>
-                    <div class="col-3">
-                        <h4 class="text-center">Tower : {{ flat.tower }}</h4>
-                    </div>
-                    <div class="col-3">
-                        <h4 class="text-center">Flat : {{ flat.flat }}</h4>
+                            {% if form.errors %}
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <div class="alert alert-danger">
+                                            <strong>{{ error|escape }}</strong>
+                                        </div>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            </form>
                     </div>
                 </div>
-                  <table class="table table-hover table-sm">
-                    <thead>
-                      <tr>
-                        <th scope="col">Sno.</th>
-                        <th scope="col">Date & Time</th>
-                        <th scope="col">Maintance Rate</th>
-                        <th scope="col">Maintace Charge</th>
-                        <th scope="col">Fixed Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for m in maintance %}
-                          <tr>
-                            <th scope="row">{{ forloop.counter }}</th>
-                            <td>{{ m.dt|date:'Y-m-d g:i a' }}</td>
-                            <td>{{ m.mrate|floatformat:2 }}</td>
-                            <td>{{ m.mcharge|floatformat:2 }}</td>
-                            <td>{{ m.famt|floatformat:2 }}</td>
-                          </tr>
-                      {% endfor %}
-                          <tr style="border-top: 2px solid #333;">
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td><strong>{{ total|floatformat:0 }}</strong></td>
-                          </tr>
-                    </tbody>
-                  </table>
-              {% endif %}
             </div>
         </div>
-      </div>
     </div>
 </main>
 {% endblock %}

@@ -57,7 +57,7 @@ $(document).ready(function(){
                     $("#eb").val(parseFloat(data['ng_eb'])+parseFloat(data['start_eb']));
                     $("#dg").val(parseFloat(data['ng_dg'])+parseFloat(data['start_dg']));
                     $("#left").val(parseFloat(data['amt_left']).toFixed(2));
-                    $("#flat_pkey").val(data['flat']); 
+                    $("#flat_pkey").val(data['flat']);  
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     $("#name").val('');
@@ -82,10 +82,10 @@ $(document).ready(function(){
         <div class="row justify-content-center">
             <div class="col-md-10">
                 <div class="card">
-                {% if form %}
-                  <div class="card-header text-center">{{ title }} ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                {% if flatrecharge %}
+                  <div class="card-header text-center">Recharge Report ( OC Maintance )<i class="fas fa-cloud"></i></div>
                         <div class="card-body">
-                        <form action="" method="post">
+                        <form action="{{ url }}" method="post">
                             {% csrf_token %}
                             <div class="row">
                             <input type="hidden" name="id" id='flat_pkey'>
@@ -137,22 +137,8 @@ $(document).ready(function(){
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Start Date</label>
-                                            <input type="date" id="date" class="form-control" name="start-date" required autofocus>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">End Date</label>
-                                            <input type="date" id="date" class="form-control" name="end-date" required autofocus>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary btn-block">Cosumption Report</button>
+                                    <button type="submit" class="btn btn-primary btn-block">Recharge Report</button>
                                 </div>
                             </div>
                       </div>
@@ -165,37 +151,63 @@ $(document).ready(function(){
                             {% endif %}
                         </form>
                     </div>
+                {% elif not recharge %}
+                  <div class="card-header text-center">Recharge History<i class="fas fa-cloud"></i></div>
+                  <div class="card-body">
+                      <form action="" method="post">
+                          {% csrf_token %}
+                          <div class="form-group row">
+                              <label for="email_address" class="col-md-4 col-form-label text-md-right">{{ args.type|title }}</label>
+                              <div class="col-md-6">
+                                  <input id="date" class="form-control" {% for i,j in args.items %} {{ i }}={{ j }} {% endfor %} required autofocus>
+                              </div>
+                          </div>
+
+                          <div class="col-md-6 offset-md-4">
+                              <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                          </div>
+                  	</div>
+                          {% if form.errors %}
+                              {% for field in form %}
+                                  {% for error in field.errors %}
+                                      <div class="alert alert-danger">
+                                          <strong>{{ error|escape }}</strong>
+                                      </div>
+                                  {% endfor %}
+                              {% endfor %}
+                              {% for error in form.non_field_errors %}
+                                  <div class="alert alert-danger">
+                                      <strong>{{ error|escape }}</strong>
+                                  </div>
+                              {% endfor %}
+                          {% endif %}
+                      </form>
+                  </div>
               {% else %}
-                <div class="row">
-                    <div class="col-1"></div>
-                    <div class="col-4">
-                        <h4 class="text-center">Owner : {{ flat.owner }}</h4>
-                    </div>
-                    <div class="col-3">
-                        <h4 class="text-center">Tower : {{ flat.tower }}</h4>
-                    </div>
-                    <div class="col-3">
-                        <h4 class="text-center">Flat : {{ flat.flat }}</h4>
-                    </div>
-                </div>
                   <table class="table table-hover table-sm">
                     <thead>
                       <tr>
                         <th scope="col">Sno.</th>
                         <th scope="col">Date & Time</th>
-                        <th scope="col">Maintance Rate</th>
-                        <th scope="col">Maintace Charge</th>
-                        <th scope="col">Fixed Amount</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Tower</th>
+                        <th scope="col">Flat</th>
+                        <th scope="col">Recharge Type</th>
+                        <th scope="col">Cheque No.</th>
+                        <th scope="col">Recharge Amount</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for m in maintance %}
+                      {% for r in recharge %}
                           <tr>
                             <th scope="row">{{ forloop.counter }}</th>
-                            <td>{{ m.dt|date:'Y-m-d g:i a' }}</td>
-                            <td>{{ m.mrate|floatformat:2 }}</td>
-                            <td>{{ m.mcharge|floatformat:2 }}</td>
-                            <td>{{ m.famt|floatformat:2 }}</td>
+                            <td>{{ r.dt }}</td>
+                            <td>{{ r.flat.owner }}</td>
+                            <td>{{ r.flat.tower|floatformat:0 }}</td>
+                            <td>{{ r.flat.flat|floatformat:0 }}</td>
+                            <td>{{ r.get_Type_display }}</td>
+                            <td>{% if r.chq_dd %}{{ r.chq_dd }}{% endif %}</td>
+                            <td>{{ r.recharge|floatformat:0 }}</td>
                           </tr>
                       {% endfor %}
                           <tr style="border-top: 2px solid #333;">
@@ -204,7 +216,9 @@ $(document).ready(function(){
                               <td></td>
                               <td></td>
                               <td></td>
-                              <td><strong>{{ total|floatformat:0 }}</strong></td>
+                              <td></td>
+                              <td></td>
+                              <td><strong>{{ total.recharge__sum|floatformat:0 }}</strong></td>
                           </tr>
                     </tbody>
                   </table>

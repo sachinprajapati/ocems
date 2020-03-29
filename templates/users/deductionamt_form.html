@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #dd-number{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                  {{ form|crispy }}
+            </div>
+        </div>
+      </div>
+    </div>
+</main>
+{% endblock %}

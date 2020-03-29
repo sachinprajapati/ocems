@@ -38,7 +38,7 @@
 		<div class="outline">
 			<div class="header">
 				<div class="row">
-					<div class="oc-logo col-3">
+					<div class="oc-logo col-3 justify-content-md-center">
 						<img src="{% static 'img/orange.png' %}" class="img-fluid" />
 					</div>
 					<div class="header-content  col-6">
@@ -46,9 +46,6 @@
 						<h5 class="text-center">County Maintenance Services</h5>
 						<h5 class="text-center">GH4, Ahinsa Khand, Indirapuram, Ghaziabad, Uttar Pradesh</h5>
 						<h5 class="text-center">Monthly Consumption Report</h5>
-					</div>
-					<div class="oc-logo col-3">
-						<img src="{% static 'img/maintance.png' %}" class="img-fluid" />
 					</div>
 				</div>
 				<hr/>
@@ -66,6 +63,7 @@
 					<div class="col-4">
 						<pre><h5>Meter No : {{ flat.meter_sr }}</h5></pre>
 						<pre><h5>Email    : {{ flat.email }}</h5></pre>
+						<pre><h5>Flat Size    : {{ flat.flat_size }}</h5></pre>
 					</div>
 				</div>
 				<table class="table table-hover table-sm">
@@ -112,7 +110,7 @@
 				    <tr>
 				      <th scope="row">5</th>
 				      <td colspan="5">Misc. Charges(*)</td>
-				      <td>0.0</td>
+				      <td>{{ bill.TotalDebits|floatformat:2 }}</td>
 				    </tr>
 				  </tbody>
 				</table>
@@ -132,6 +130,24 @@
 				<hr/>
 				<div>
 					<p>E&OE. This is a computer generated report and any disputes regarding the same shall be registered within 7 days of generation.</p>
+					{% if bill.Debits %}
+						<hr/>
+						<p>Misc. Charges Description</p>
+						<ul style="font-size: 11px;;">
+							{% for d in bill.Debits %}
+								<li><strong>{{ d.remarks|title }} - {{ d.debit_amt }}</strong></li>
+							{% endfor %}
+						</ul>
+					{% endif %}
+					{% if bill.get_OtherMaintance %}
+						<ul style="font-size: 11px;;">
+							<li><strong>
+								{% for o in bill.get_OtherMaintance %}
+									{{ o.name|title }}
+								{% endfor %} - {{ bill.get_OtherMaintanceTotal|floatformat:2 }}
+							</strong></li>
+						</ul>
+					{% endif %}
 				</div>
 			</div>
 		</div>

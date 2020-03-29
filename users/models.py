@@ -2,9 +2,14 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.urls import reverse
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 import pytz
 import socket
+import calendar
+import requests
 
 def dt_now():
 	dt = timezone.now()
@@ -61,6 +66,13 @@ class Flats(models.Model):
 	def getMFTotal(self):
 		return self.getMaintance()+self.getFixed()
 
+CONSUMPTION_STATUS = (
+	(0, _("Enough Balance")),
+    (1, _("Low Balance")),
+	(2, _("Negative Balance")),
+	(3, _("Power Cut"))
+)
+
 
 class Consumption(models.Model):
 	dt = models.DateTimeField()
@@ -70,7 +82,7 @@ class Consumption(models.Model):
 	start_eb = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start Utility KWH")
 	start_dg = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Start DG KWH")
 	amt_left = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Amount Left")
-	status = models.PositiveIntegerField(null=True, blank=True)
+	status = models.PositiveIntegerField(choices=CONSUMPTION_STATUS, null=True, blank=True)
 	reset_dt = models.DateTimeField(null=True, blank=True)
 	meter_change_dt = models.DateTimeField(null=True, blank=True)
 	last_modified = models.CharField(max_length=5)
@@ -94,7 +106,8 @@ class Consumption(models.Model):
 RECHARGE_TYPE = (
 	(1, _("cash")),
     (2, _("bank")),
-	(3, _("neft"))
+	(3, _("neft")),
+	(4, _("merchant"))
 )
 
 class Recharge(models.Model):
@@ -110,11 +123,30 @@ class Recharge(models.Model):
 	def __str__(self):
 		return '{} recharge {}'.format(self.flat, self.recharge)
 
-	def save(self, *args, **kwargs):
-	    mt = MessageTemplate.objects.get(m_type=1)
-	    text = mt.text.format(self.flat.owner, self.flat.tower, self.flat.flat, self.recharge, self.amt_left+self.recharge)
-	    mt.sendMessage(text, self.flat)
-	    super(Recharge, self).save(*args, **kwargs)
+	# def save(self, *args, **kwargs):
+	#     super(Recharge, self).save(*args, **kwargs)
+
+@receiver(post_save, sender=Recharge, dispatch_uid="update_stock_count")
+def update_stock(sender, instance, created, **kwargs):
+	if created and instance.flat.phone:
+		mt = MessageTemplate.objects.get(m_type=1)
+		text = mt.text.format(instance.flat.owner, instance.flat.tower, instance.flat.flat, instance.recharge, instance.flat.consumption.amt_left)
+		mt.sendMessage(text, instance.flat)
+		print("sending message to ", instance.flat)
+	else:
+		print("cannot send message to ", instance)
+
+
+def get_days(start_dt, end_dt, month):
+	if not end_dt:
+		end_dt = calendar.monthrange(start_dt.year,month)[1]
+		if start_dt.month == month:
+			start_day = start_dt.day
+		else:
+			start_day = 1
+		return (end_dt-start_day)+1
+	return end_dt.day-start_dt.day+1
+
 
 class MonthlyBill(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
@@ -128,8 +160,8 @@ class MonthlyBill(models.Model):
 	cls_amt = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Closing Amount")
 	eb_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility Rate")
 	dg_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG Rate")
-	start_dt = models.DateTimeField()
-	end_dt = models.DateTimeField(null=True, blank=True)
+	start_dt = models.DateTimeField(auto_now_add=True)
+	end_dt = models.DateTimeField(null=True, blank=True, auto_now=True)
 
 	def __str__(self):
 		return '{} month {} year {}'.format(self.flat, self.month, self.year)
@@ -146,11 +178,38 @@ class MonthlyBill(models.Model):
 	def get_dgprice(self):
 		return float(self.dg_price)*float(self.get_dg())
 
+	def get_OtherMaintance(self):
+		if self.flat.tower==17:
+			return None
+		if self.month<=11 and self.year==2019:
+			return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
+		else:
+			om = OtherMaintance.objects.filter(start_dt__year__lte=self.year)
+			l = []
+			for i in om:
+				if i.end_dt:
+					if i.end_dt.month>=self.month and i.end_dt.year>=self.year:
+						l.append(i)
+				else:
+					l.append(i)
+			return l
+
+	def get_OtherMaintanceTotal(self):
+		if self.flat.tower == 17:
+			return 0
+		total = 0
+		om = self.get_OtherMaintance()
+		for i in om:
+			days = get_days(i.start_dt, i.end_dt, self.month)
+			total += ((self.flat.flat_size*i.price)*(12/365))*days
+		return total
+
 	def get_TotalMaintance(self):
 		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
 		if not m['mcharge__sum']:
 			m['mcharge__sum'] = 0
-		return float(m['mcharge__sum'])
+		# return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
+		return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))
@@ -158,8 +217,17 @@ class MonthlyBill(models.Model):
 			f['famt__sum'] = 0
 		return float(f['famt__sum'])
 
+	def Debits(self):
+		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
+
+	def TotalDebits(self):
+		deits = self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
+		if not deits:
+			deits = 0
+		return deits+self.get_OtherMaintanceTotal()
+
 	def get_TotalUsed(self):
-		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()
+		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()+self.TotalDebits()
 		return float(t)
 
 	def get_RechargeInMonth(self):
@@ -173,7 +241,7 @@ class MonthlyBill(models.Model):
 
 class Maintance(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
-	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+	dt = models.DateTimeField()
 	mrate = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Rate"))
 	mcharge = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Maintance Charges"))
 	famt = models.DecimalField(max_digits=19, decimal_places=4,verbose_name=_("Fixed Amount"))
@@ -205,6 +273,9 @@ class DeductionAmt(models.Model):
 
 	def __str__(self):
 		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
+
+	def get_update_url(self):
+		return reverse('users:tower_update', kwargs={'pk': self.pk})
 
 
 
@@ -287,8 +358,13 @@ class MessageTemplate(models.Model):
 			# print("internet is not working")
 
 	def SendSMS(self, text, flat):
-		pass
-		#print("sending message to ", flat, "mesage is -", text)
+		URL = "https://www.txtguru.in/imobile/api.php"
+		PARAMS = {'username': 'orangecounty.csk',
+          'password': '86617614',
+          'source': 'OCAOAM',
+          'dmobile': '91{}'.format(flat.phone),
+          'message': text}
+		r = requests.get(url = URL, params = PARAMS)
 
 
 class SentMessage(models.Model):
@@ -311,3 +387,13 @@ class Debit(models.Model):
 
 	def __str__(self):
 		return '{} debit amt {} at {}'.format(self.flat, self.amt_left, self.dt)
+
+class OtherMaintance(models.Model):
+	price = models.PositiveIntegerField()
+	name = models.CharField(max_length=255)
+	start_dt = models.DateField()
+	end_dt = models.DateField(null=True, blank=True)
+
+	def __str__(self):
+		return 'from {} to {} of {} price {}'.format(self.start_dt, self.end_dt, self.name, self.price)
+	
