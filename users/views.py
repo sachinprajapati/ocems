@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -30,10 +30,29 @@ def dt_now():
 	localtz = utc.astimezone(localtz)
 	return localtz
 
+def AdminRequired(function):
+    def wrapper(request, *args, **kw):
+        if not request.user.is_superuser and not request.user.is_staff:
+        	return Http404("Poll does not exist")
+        else:
+            return function(request, *args, **kw)
+    return wrapper
 
-@login_required()
+def StaffRequired(function):
+    def wrapper(request, *args, **kw):
+        if not request.user.is_staff:
+        	raise Http404
+        else:
+            return function(request, *args, **kw)
+    return wrapper
+
+
+@login_required
 def Dashboard(request):
-	return render(request, 'users/dashboard.html', {})
+	if request.user.is_staff:
+		return render(request, 'users/dashboard.html', {})
+	else:
+		return render(request, 'resident/dashboard.html', {})
 
 
 # class RechargeView(CreateView):
@@ -41,7 +60,7 @@ def Dashboard(request):
 # 	form_class = RechargeForm
 
 
-@login_required
+@StaffRequired
 def RechargeView(request):
 	context = {}
 	context['errors'] = []
@@ -64,7 +83,7 @@ def RechargeView(request):
 	context['form'] = form
 	return render(request, 'users/recharge.html', context)
 
-@login_required
+@StaffRequired
 def RechargeReceiptView(request):
 	context = {
 		"args": {"type": "month", "name": "month"},
@@ -89,7 +108,7 @@ def RechargeReceiptView(request):
 
 
 
-@login_required()
+@StaffRequired
 def getFlat(request):
 	if request.method == "POST":
 		tower = request.POST.get("tower", '')
@@ -115,24 +134,26 @@ def getFlat(request):
 # 	}
 # 	return render(request, 'users/negative-flats.html', context)
 
-
+@method_decorator(StaffRequired, name='dispatch')
 class NegativeBalanceFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
 	queryset = Consumption.objects.filter(amt_left__lt = 0).order_by('flat__tower', 'flat__flat')
 
+@method_decorator(StaffRequired, name="dispatch")
 class PositiveBalanceFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
 	queryset = Consumption.objects.filter(amt_left__gte=0).order_by('flat__tower', 'flat__flat')
 
+@method_decorator(StaffRequired, name="dispatch")
 class NonDeductionFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
 	queryset = Consumption.objects.filter(deduction_status=1).order_by('flat__tower', 'flat__flat')
 
 
-@login_required()
+@StaffRequired
 def getBillView(request):
 	context = {}
 	if request.method == "POST":
@@ -151,7 +172,7 @@ def getBillView(request):
 	return render(request, 'users/getBill.html', context)
 
 
-@login_required()
+@StaffRequired
 def DailyRechargeReport(request):
 	context = {
 		"args": {"type": "date", "name": "date"}
@@ -173,7 +194,7 @@ def DailyRechargeReport(request):
 	return render(request, 'users/rechargehistory.html', context)
 
 
-@login_required()
+@StaffRequired
 def MonthlyRechargeReport(request):
 	context = {
 		"args": {"type": "month", "name": "month"}
@@ -195,7 +216,7 @@ def MonthlyRechargeReport(request):
 	return render(request, 'users/rechargehistory.html', context)
 
 
-@login_required()
+@StaffRequired
 def FlatRechargeReport(request):
 	context = {
 		"args": {"type": "month", "name": "month"},
@@ -217,7 +238,7 @@ def FlatRechargeReport(request):
 	return render(request, 'users/rechargehistory.html', context)
 
 
-@login_required()
+@StaffRequired
 def FlatHourlyReport(request):
 	context = {
 		"form" : True,
@@ -235,7 +256,7 @@ def FlatHourlyReport(request):
 	return render(request, 'users/flats-hourly-report.html', context)
 
 
-@login_required
+@StaffRequired
 def FlatMaintanceReport(request):
 	context = {
 		"form" : True,
@@ -253,7 +274,7 @@ def FlatMaintanceReport(request):
 			}
 	return render(request, 'users/maintance_report.html', context)
 
-@login_required
+@StaffRequired
 def FlatSMSReport(request):
 	context = {
 		"form" : True,
@@ -273,8 +294,8 @@ def FlatSMSReport(request):
 			return render(request, 'users/smshistory.html', context)
 	return render(request, 'users/maintance_report.html', context)
 
-
-class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+@method_decorator(StaffRequired, name='dispatch')
+class SendSMSView(SuccessMessageMixin, FormView):
 	template_name = 'users/send_sms.html'
 	form_class = SendSMSForm
 	success_url = '/send-sms/'
@@ -285,14 +306,14 @@ class SendSMSView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 	# 	return super().form_valid(form)
 
 
-@method_decorator(staff_member_required, name='dispatch')
+@method_decorator(AdminRequired, name="dispatch")
 class MeterChangeView(SuccessMessageMixin, CreateView):
 	template_name = 'users/meterchange.html'
 	form_class = MeterChangeForm
 	success_url = reverse_lazy('users:meter_change')
 	success_message = "%(flat)s's Meter Changed Successfully"
 
-# @method_decorator(staff_member_required, name='dispatch')
+# @method_decorator(StaffRequired, name='dispatch')
 # class BillAdjusmentView(SuccessMessageMixin, ListView):
 # 	template_name = 'users/bill_adjustment.html'
 # 	success_url = reverse_lazy('users:meter_change')
@@ -318,23 +339,19 @@ def BillAdjusmentView(request):
 	print(len(context["object_list"]))
 	return render(request, 'users/bill_adjustment.html', context)
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(AdminRequired, name="dispatch")
 class TowerListView(SuccessMessageMixin, ListView):
 	model = DeductionAmt
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(AdminRequired, name="dispatch")
 class TowerUpdateView(SuccessMessageMixin, UpdateView):
 	model = DeductionAmt
 	fields = ['eb_price', 'dg_price']
 
 
 
-
-def Design(request):
-	return render(request, 'users/recharge_success.html', {})
-
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(AdminRequired, name="dispatch")
 class DebitView(SuccessMessageMixin, CreateView):
 	model = Debit
 	fields = ["flat", "debit_amt", "remarks"]
@@ -351,7 +368,7 @@ class DebitView(SuccessMessageMixin, CreateView):
 		cons.save()
 		return super().form_valid(form)
 
-@login_required()
+@StaffRequired
 def SMSReport(request):
 	context = {
 		"args": {"type": "date", "name": "date"}
