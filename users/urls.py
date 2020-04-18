@@ -27,5 +27,6 @@ urlpatterns = [
 	#path('Change-Mantance/', UpdateMaintanceView.as_view(), name="change_maintance"),
 	path('debit/', DebitView.as_view(), name="debit"),
 	path('sms-report/', SMSReport, name="sms_report"),
+	path('create-login/', CreateLogin, name="create_login"),
 	#path('design/', Design, name="design"),
 ]

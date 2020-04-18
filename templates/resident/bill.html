@@ -1,0 +1,71 @@
+{% extends 'resident/base.html' %}
+
+{% block contenttitle %}Monthly Bill{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+          <div class="card-header text-center">Monthly Bill ( OC Maintance ) <i class="fas fa-file-invoice"></i></div>
+            <div class="card-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group input-group-sm">
+                            <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
+                            <input type="number" id="tower" class="form-control number" name="tower" disabled="" autofocus value="{{ flat.tower }}">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group input-group-sm">
+                            <label for="email_address" class="col-form-label">Flat Number</label>
+                            <input type="number" id="flat" class="form-control number" name="flat" disabled="" autofocus value="{{ flat.flat }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-9">
+                        <div class="form-group input-group-sm">
+                            <label for="email_address" class="col-form-label">Select Month</label>
+                            <input type="month" id="month" class="form-control" max="{{ date|date:"Y-m" }}" name="month" required="" autofocus>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <div class="row justify-content-center">
+                    <div class="col-9">
+                        <div class="form-group input-group-sm">
+                            <input type="submit" id="submit" class="btn btn-primary btn-block" name="submit">
+                        </div>
+                    </div>
+                </div>
+              </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if errors %}
+    {% for e in errors %}
+        <div class="alert alert-danger">
+            <strong>{{ e|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+{% if form.errors %}
+    {{ form.errors }}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}

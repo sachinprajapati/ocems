@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<style type="text/css">
+    #hidden-form, #div-error{
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<script type="text/javascript">
+(function($) {
+  $.fn.inputFilter = function(inputFilter) {
+    return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+      if (inputFilter(this.value)) {
+        this.oldValue = this.value;
+        this.oldSelectionStart = this.selectionStart;
+        this.oldSelectionEnd = this.selectionEnd;
+      } else if (this.hasOwnProperty("oldValue")) {
+        this.value = this.oldValue;
+        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+      }
+    });
+  };
+}(jQuery));
+
+$(document).ready(function() {
+  // Restrict input to digits by using a regular expression filter.
+  $(".number").inputFilter(function(value) {
+    return /^\d*$/.test(value);
+  });
+});
+</script>
+<script>
+$(document).ready(function(){
+    $("#flat").bind("keyup", function(e) {
+        var code = e.keyCode || e.which;
+        if (code != '9') {
+            var tower = $("#tower").val();
+            var flat = $("#flat").val();
+            $.ajax({
+                url: "{% url 'users:getFlat' %}",
+                type: "POST", //send it through get method
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}', 
+                    tower: tower, 
+                    flat: flat
+                    },
+                success: function(data){
+                    console.log(data)
+                    $("#div-error").css("display", "none");
+                    if(data["phone"] || data["email"]){
+                        $("#hidden-form").css("display","block");
+                        $("#name").val(data['owner']);
+                        $("#phone").val(data['phone']);
+                        $("#login-type option").remove()
+                        $("#email").val(data['email']);
+                        $("#dg").val((parseFloat(data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
+                        $("#left").val(parseFloat(data['amt_left']).toFixed(2));
+                        $("#flat_pkey").val(data['flat']);
+                        if (!data["user"]){
+                            $("#status-update").remove();
+                        }
+                    }else{
+                        console.log("not exist");
+                        $("#div-error").css("display", "block");
+                        $("#div-error").html("<strong>No Email or Phone Registered for "+data["tower"]+"/"+data["flat_no"]+"</strong>");
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $("#div-error").css("display", "block");
+                    $("#div-error").html("<strong>No Flat Foundzz</strong>");
+                    $("#name").val('');
+                    $("#phone").val('');
+                    $("#eb").val('');
+                    $("#dg").val('');
+                    $("#left").val('');
+                    $("#flat_pkey").val('');
+                    $("#hidden-form").css("display","none");
+                }       
+            });
+        }
+    })
+});
+</script>
+
+<script type="text/javascript">
+    $('form').submit(function () {
+        alert("dsfsdfs");
+        // Get the Login Name value and trim it
+        var name = $.trim($('#phone').val());
+
+        // Check if empty of not
+        if (name  === '') {
+            alert('Text-field is empty.');
+            return false;
+        }
+    });
+</script>
+
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header text-center">Create Resident Login<i class="fas fa-cloud"></i></div>
+                        <div class="card-body">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                            <input type="hidden" name="flat" id='flat_pkey' value="">
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
+                                        <input type="number" id="tower" class="form-control number" name="tower" required autofocus>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group input-group-sm">
+                                        <label for="email_address" class="col-form-label">Flat Number</label>
+                                        <input type="number" id="flat" class="form-control number" name="flat-no" required autofocus>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="hidden-form">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Owner</label>
+                                            <input type="text" id="name" class="form-control" name="owner" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Mobile</label>
+                                            <input type="number" id="phone" class="form-control" name="mob" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Email</label>
+                                            <input type="email" id="email" class="form-control" name="email" required autofocus disabled="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" id="status-update">
+                                    <div class="col-4">
+                                        <div class="form-group input-group-sm">
+                                            <label for="email_address" class="col-form-label">Status</label>
+                                            <select class="form-control" name="status" id="login-status">
+                                                <option value="1">activate</option>
+                                                <option value="0">deactivate</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" id="submit-form" class="btn btn-primary btn-block">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% if errors %}
+                            {% for e in errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ e|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if form.errors %}
+                            {{ form.errors }}
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <div id="div-error" class="alert alert-danger"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

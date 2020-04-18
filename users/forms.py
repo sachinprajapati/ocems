@@ -49,14 +49,15 @@ class RechargeForm(ModelForm):
 
 
 def SendSMS(text, flat):
-		URL = "https://www.txtguru.in/imobile/api.php"
-		PARAMS = {'username': 'orangecounty.csk',
-          'password': '86617614',
-          'source': 'OCAOAM',
-          'dmobile': '91{}'.format(flat.phone),
-			#'dmobile': '919555582807',
-          'message': text}
-		r = requests.get(url = URL, params = PARAMS)
+		# URL = "https://www.txtguru.in/imobile/api.php"
+		# PARAMS = {'username': '',
+  #         'password': '',
+  #         'source': 'OCAOAM',
+  #         'dmobile': '91{}'.format(flat.phone),
+		# 	#'dmobile': '919555582807',
+  #         'message': text}
+		# r = requests.get(url = URL, params = PARAMS)
+		pass
 
 class SendSMSForm(forms.Form):
 	flat_id = forms.IntegerField()

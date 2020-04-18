@@ -6,6 +6,7 @@ from django.db.models import Sum, Q
 from django.urls import reverse
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.contrib.auth.models import User
 import pytz
 import socket
 import calendar
@@ -42,6 +43,7 @@ class Flats(models.Model):
 	meter_sr = models.TextField(null=True, blank=True)
 	basis = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
 	fixed_amt = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
 	def __str__(self):
 		return 'tower {} flat {} owner {}'.format(self.tower, self.flat, self.owner)
@@ -358,13 +360,14 @@ class MessageTemplate(models.Model):
 			# print("internet is not working")
 
 	def SendSMS(self, text, flat):
-		URL = "https://www.txtguru.in/imobile/api.php"
-		PARAMS = {'username': 'orangecounty.csk',
-          'password': '86617614',
-          'source': 'OCAOAM',
-          'dmobile': '91{}'.format(flat.phone),
-          'message': text}
-		r = requests.get(url = URL, params = PARAMS)
+		# URL = "https://www.txtguru.in/imobile/api.php"
+		# PARAMS = {'username': '',
+  #         'password': '',
+  #         'source': 'OCAOAM',
+  #         'dmobile': '91{}'.format(flat.phone),
+  #         'message': text}
+		# r = requests.get(url = URL, params = PARAMS)
+		pass
 
 
 class SentMessage(models.Model):

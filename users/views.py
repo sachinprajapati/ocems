@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -15,6 +15,7 @@ from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Sum, Count, Func, F
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from datetime import datetime, timedelta
 
@@ -22,6 +23,9 @@ from .models import *
 from .forms import *
 import json
 import pytz
+import string 
+import random
+import dateutil.relativedelta
 
 def dt_now():
 	dt = timezone.now()
@@ -33,7 +37,7 @@ def dt_now():
 def AdminRequired(function):
     def wrapper(request, *args, **kw):
         if not request.user.is_superuser and not request.user.is_staff:
-        	return Http404("Poll does not exist")
+        	return redirect(reverse_lazy("users:dashboard"))
         else:
             return function(request, *args, **kw)
     return wrapper
@@ -41,14 +45,25 @@ def AdminRequired(function):
 def StaffRequired(function):
     def wrapper(request, *args, **kw):
         if not request.user.is_staff:
-        	raise Http404
+        	return redirect(reverse_lazy("users:dashboard"))
         else:
             return function(request, *args, **kw)
     return wrapper
 
 
+def SessionFlat(function):
+	def wrapper(request, *args, **kw):
+		if not request.user.is_staff:
+			flats = request.user.flats_set.all()
+			if len(flats) == 1:
+				request.session["flat"] = flats[0].pk
+		return function(request, *args, **kw)
+	return wrapper
+
 @login_required
+@SessionFlat
 def Dashboard(request):
+	print(request.session.get("flat"))
 	if request.user.is_staff:
 		return render(request, 'users/dashboard.html', {})
 	else:
@@ -122,6 +137,7 @@ def getFlat(request):
 				consd = json.loads(consumption)['fields']
 				for k,v in consd.items():
 					data[k] = v
+				data["flat_no"] = flat.flat
 				return JsonResponse(data)
 	return HttpResponse(status=404)
 
@@ -155,20 +171,27 @@ class NonDeductionFlats(ListView):
 
 @StaffRequired
 def getBillView(request):
-	context = {}
+	context = {
+		"date": datetime.today() - dateutil.relativedelta.relativedelta(months=1)
+	}
+	context["errors"] = []
 	if request.method == "POST":
 		data = request.POST
 		if data.get('flat') and data.get('month'):
-			flat = get_object_or_404(Flats, pk=data["flat"])
-			date = datetime.strptime(data['month'], "%Y-%m").date()
-			bill = MonthlyBill.objects.get(month=date.month, year=date.year, flat=flat)
-			context = {
-				"bill": bill,
-				"date": date,
-				"report_date": datetime.today(),
-				"flat": flat,
-			}
-			return render(request, 'users/bill_report.html', context)
+			try:
+				flat = Flats.objects.get(pk=data["flat"])
+				date = datetime.strptime(data['month'], "%Y-%m").date()
+				bill = MonthlyBill.objects.get(month=date.month, year=date.year, flat=flat)
+				context = {
+					"bill": bill,
+					"date": date,
+					"report_date": datetime.today(),
+					"flat": flat,
+				}
+				return render(request, 'users/bill_report.html', context)
+			except Exception as e:
+				print(e)
+				context["errors"].append(e)
 	return render(request, 'users/getBill.html', context)
 
 
@@ -349,6 +372,38 @@ class TowerUpdateView(SuccessMessageMixin, UpdateView):
 	model = DeductionAmt
 	fields = ['eb_price', 'dg_price']
 
+
+@StaffRequired
+def CreateLogin(request):
+	context = {}
+	context['errors'] = []
+	if request.method == "POST":
+		data = request.POST
+		flat = get_object_or_404(Flats, pk=data["flat"])
+		if str(flat.tower) == data.get("tower") and str(flat.flat) == data.get("flat-no"):
+			if not flat.user:
+				try:
+					user = User.objects.get(username=flat.phone)
+				except Exception as e:
+					user = User(username=flat.phone)
+					res = ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k = 8))
+					print("password is", res)
+					user.set_password(res)
+					user.save()
+				flat.user = user
+				flat.save()
+			else:
+				user = flat.user
+			if data["status"] == "0":
+				user.is_active = False
+			else:
+				user.is_active = True
+			user.save()
+			context["errors"].append("Successfully Updated")
+		else:
+			context["errors"].append("Flat not found")
+	return render(request, 'users/create-login.html', context)
 
 
 @method_decorator(AdminRequired, name="dispatch")
