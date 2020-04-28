@@ -13,12 +13,22 @@ from users.models import *
 
 
 def ResidentRequired(function):
-    def wrapper(request, *args, **kw):
-        if request.user.is_staff or request.user.is_superuser:
-        	return redirect(reverse_lazy("users:dashboard"))
-        else:
-            return function(request, *args, **kw)
-    return wrapper
+	def wrapper(request, *args, **kw):
+		if request.user.is_staff or request.user.is_superuser:
+			return redirect(reverse_lazy("users:dashboard"))
+		else:
+			if not request.session.get("flat"):
+				return redirect(reverse_lazy("resident:select_flat"))
+			return function(request, *args, **kw)
+	return wrapper
+
+@method_decorator(login_required, name="dispatch")
+class SelectFlat(ListView):
+	model = Flats
+	template_name = "resident/select_flat.html"
+
+	def get_queryset(self):
+	    return self.request.user.flats_set.all()
 
 @login_required
 @ResidentRequired
@@ -56,3 +66,13 @@ class RechargeHistory(LoginRequiredMixin, ListView):
 @method_decorator(ResidentRequired, name='dispatch')
 class ResidentProfile(LoginRequiredMixin, TemplateView):
 	template_name = "resident/profile.html"
+
+@login_required
+def ActiveFlat(request, pk):
+	try:
+		flat = Flats.objects.get(pk=pk)
+		request.session["flat"] = flat.pk
+		return redirect(reverse_lazy("users:dashboard"))
+	except Exception as e:
+		print(e)
+		return redirect(reverse_lazy("resident:select_flat"))

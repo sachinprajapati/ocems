@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="{% url 'homepage' %}">Home</a>
+  <a class="navbar-brand" href="{% url 'users:homepage' %}">Home</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -37,7 +37,14 @@
           <a class="dropdown-item" href="{% url 'users:negative_balance_flats' %}">Negative Balance Flats</a>
           <a class="dropdown-item" href="{% url 'users:positive_balance_flats' %}">Positive Balance Flats</a>
           <a class="dropdown-item" href="{% url 'users:non_deduction_flats' %}">Non Deduction Flats</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Flats Login
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
           <a class="dropdown-item" href="{% url 'users:create_login' %}">Create Flat Login</a>
+          <a class="dropdown-item" href="{% url 'users:update_login' %}">Update Flat Login</a>
         </div>
       </li>
       {% if request.user.is_superuser %}

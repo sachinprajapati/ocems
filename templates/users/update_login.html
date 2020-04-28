@@ -51,14 +51,17 @@ $(document).ready(function(){
                 success: function(data){
                     console.log(data);
                     $("#div-error").css("display", "none");
-                    if(!data["user"]){
+                    if(data["user"]){
                         if(data["email"]){
                             $("#hidden-form").css("display","block");
+                            if(data["user"]["is_active"]){
+                                $('#login-status option[value="1"]').attr("selected", "selected");
+                            }else{
+                                $('#login-status option[value="0"]').attr("selected", "selected");
+                            }                            
                             $("#name").val(data['owner']);
                             $("#phone").val(data['phone']);
-                            $("#email").val(data['email']);
-                            $("#dg").val((parseFloat(data['ng_dg'])+parseFloat(data['start_dg'])).toFixed(2));
-                            $("#left").val(parseFloat(data['amt_left']).toFixed(2));
+                            $("#email").val(data['user']['username']);
                             $("#flat_pkey").val(data['flat']);
                         }else{
                             console.log("not exist");
@@ -69,7 +72,7 @@ $(document).ready(function(){
                     else{
                         console.log("not exist");
                         $("#div-error").css("display", "block");
-                        $("#div-error").html("<strong>Already Registered</strong>");
+                        $("#div-error").html("<strong>Not Registered</strong>");
                     }
                     
                 },
@@ -124,14 +127,17 @@ $(document).ready(function(){
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Mobile</label>
-                                            <input type="number" id="phone" class="form-control" name="mob" required autofocus disabled="">
+                                            <label for="email_address" class="col-form-label">Login Email</label>
+                                            <input type="email" id="email" class="form-control" name="email" required autofocus disabled="">
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="form-group input-group-sm">
-                                            <label for="email_address" class="col-form-label">Email</label>
-                                            <input type="email" id="email" class="form-control" name="email" required autofocus disabled="">
+                                            <label for="email_address" class="col-form-label">Login Email</label>
+                                            <select name="status" id="login-status" class="form-control">
+                                                <option value="1">Activate</option>
+                                                <option value="0">Deactivate</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

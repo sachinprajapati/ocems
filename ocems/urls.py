@@ -21,8 +21,8 @@ import users
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', auth_views.LoginView.as_view(template_name="homepage.html", redirect_authenticated_user=True) \
-        , name="homepage"),
+    path('login/', auth_views.LoginView.as_view(template_name="homepage.html", redirect_authenticated_user=True) \
+        , name="login"),
     path('logout/', auth_views.LogoutView.as_view(), name="logout"),
     path('', include('users.urls')),
     path('', include('resident.urls'))

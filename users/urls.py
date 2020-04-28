@@ -5,6 +5,7 @@ from .views import *
 app_name = 'users'
 
 urlpatterns = [
+	path('', Homepage.as_view(), name="homepage"),
 	path('dashboard/', Dashboard, name="dashboard"),
 	path('recharge/', RechargeView, name="recharge"),
 	path('recharge-receipt/', RechargeReceiptView, name="recharge_receipt"),
@@ -28,5 +29,6 @@ urlpatterns = [
 	path('debit/', DebitView.as_view(), name="debit"),
 	path('sms-report/', SMSReport, name="sms_report"),
 	path('create-login/', CreateLogin, name="create_login"),
+	path('update-login/', UpdateLogin, name="update_login"),
 	#path('design/', Design, name="design"),
 ]

@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.urls import reverse_lazy
 from django.conf import settings
 from django.core import serializers
+from django.core.mail import send_mail
 from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
@@ -26,6 +27,10 @@ import pytz
 import string 
 import random
 import dateutil.relativedelta
+
+
+class Homepage(TemplateView):
+	template_name = "index.html"
 
 def dt_now():
 	dt = timezone.now()
@@ -57,13 +62,16 @@ def SessionFlat(function):
 			flats = request.user.flats_set.all()
 			if len(flats) == 1:
 				request.session["flat"] = flats[0].pk
+			elif len(flats) > 1:
+				if not request.session.get("flat"):
+					return redirect(reverse_lazy("resident:select_flat"))
 		return function(request, *args, **kw)
 	return wrapper
 
 @login_required
 @SessionFlat
 def Dashboard(request):
-	print(request.session.get("flat"))
+	print(request.session)
 	if request.user.is_staff:
 		return render(request, 'users/dashboard.html', {})
 	else:
@@ -138,6 +146,7 @@ def getFlat(request):
 				for k,v in consd.items():
 					data[k] = v
 				data["flat_no"] = flat.flat
+				data["user"] = json.loads(serializers.serialize('json', [flat.user, ], fields=('username','is_active'))[1:-1])['fields'] if flat.user else False
 				return JsonResponse(data)
 	return HttpResponse(status=404)
 
@@ -379,31 +388,56 @@ def CreateLogin(request):
 	context['errors'] = []
 	if request.method == "POST":
 		data = request.POST
-		flat = get_object_or_404(Flats, pk=data["flat"])
-		if str(flat.tower) == data.get("tower") and str(flat.flat) == data.get("flat-no"):
-			if not flat.user:
-				try:
-					user = User.objects.get(username=flat.phone)
-				except Exception as e:
-					user = User(username=flat.phone)
-					res = ''.join(random.choices(string.ascii_uppercase +
-                             string.digits, k = 8))
-					print("password is", res)
-					user.set_password(res)
-					user.save()
-				flat.user = user
-				flat.save()
-			else:
-				user = flat.user
-			if data["status"] == "0":
-				user.is_active = False
-			else:
-				user.is_active = True
-			user.save()
-			context["errors"].append("Successfully Updated")
-		else:
-			context["errors"].append("Flat not found")
+		try:
+			flat = Flats.objects.get(pk=data["flat"])
+			if not str(flat.tower) == data.get("tower") or not str(flat.flat) == data.get("flat-no") or flat.user is not None:
+				raise Exception("Flat not Found or Already Registered")
+			if flat.email is None:
+				raise Exception("No Phone or Email registered for {}/{}".format(flat.tower, flat.flat))
+			pwd = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+			try:
+				user = User.objects.get(username=flat.email)
+				msg = 'Hello {} you have successfully registered for login {}/{} with existing account {}'.format(flat.owner, \
+			    	flat.tower, flat.flat, user.username)
+			except:
+				user = User(username=flat.email)
+				user.set_password(pwd)
+				user.save()
+				msg = 'Hello {} you have successfully registered for login {}/{} with email "{}" and password {}'.format(flat.owner, \
+			    	flat.tower, flat.flat, flat.email, pwd)
+			flat.user = user
+			flat.save()
+			send_mail(
+			    'Flat Login Registration',
+			    msg,
+			    'from@example.com',
+			    [flat.email],
+			    fail_silently=False,
+			)
+			context["message"] = "Sucessfully Registered {}/{} with email {}".format(flat.tower, flat.flat, user.username)
+		except Exception as e:
+			print("na ji", data)
+			context["errors"].append(e)
 	return render(request, 'users/create-login.html', context)
+
+@StaffRequired
+def UpdateLogin(request):
+	context = {}
+	context['errors'] = []
+	if request.method == "POST":
+		data = request.POST
+		try:
+			flat = get_object_or_404(Flats, pk=data["flat"])
+			if str(flat.tower) != data.get("tower") or str(flat.flat) != data.get("flat-no") or flat.user is None:
+				raise Exception("Flat not Found")
+			if data.get("status"):
+				flat.user.is_active = data["status"]
+				flat.user.save()
+				context["message"] = "Sucessfully Login Status Changed for {}/{}".format(flat.tower, flat.flat)
+		except Exception as e:
+			print("na ji", data, e)
+			context["errors"].append(e)
+	return render(request, 'users/update_login.html', context)
 
 
 @method_decorator(AdminRequired, name="dispatch")
