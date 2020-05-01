@@ -2,9 +2,13 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import UpdateView
 
 from datetime import datetime
 import dateutil.relativedelta
@@ -76,3 +80,17 @@ def ActiveFlat(request, pk):
 	except Exception as e:
 		print(e)
 		return redirect(reverse_lazy("resident:select_flat"))
+
+@login_required
+def ChangePassword(request):
+	form = PasswordChangeForm(request.POST or None)
+	context = {"base": "base.html" if request.user.is_staff else "resident/base.html", "form": form}
+	if request.method == 'POST':
+		form = PasswordChangeForm(request.user, request.POST)
+		if form.is_valid():
+		    user = form.save()
+		    update_session_auth_hash(request, user)  # Important!
+		    messages.success(request, 'Your password was successfully updated!')
+		else:
+		    messages.error(request, 'Please correct the error below.')
+	return render(request, 'resident/change_password.html', context)
