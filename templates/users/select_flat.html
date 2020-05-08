@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<main class="login-form">
+	    <div class="cotainer-fluid">
+	        <div class="row justify-content-center">
+	            <div class="col-md-10">
+	                <div class="card">
+	                    <div class="card-header text-center">Recharge ( OC Maintance )<i class="fas fa-cloud"></i></div>
+	                        <div class="card-body">
+	                        <form action="" method="post">
+	                            {% csrf_token %}
+	                            <div class="row">
+	                                <div class="col-4">
+	                                    <div class="form-group input-group-sm">
+	                                        <label for="email_address" class="col-form-label text-md-right">Tower Number</label>
+	                                        <input type="number" id="tower" class="form-control number" name="tower" required autofocus>
+	                                    </div>
+	                                </div>
+	                                <div class="col-4">
+	                                    <div class="form-group input-group-sm">
+	                                        <label for="email_address" class="col-form-label">Flat Number</label>
+	                                        <input type="number" id="flat" class="form-control number" name="flat-no" required autofocus>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="row">
+	                            	<input type="submit" name="submit" class="btn btn-primary btn-block">
+	                            </div>
+	                            {% if errors %}
+	                                {% for e in errors %}
+	                                    <div class="alert alert-danger">
+	                                        <strong>{{ e|escape }}</strong>
+	                                    </div>
+	                                {% endfor %}
+	                            {% endif %}
+	                            {% if messages %}
+		                            <ul class="messages">
+		                                {% for message in messages %}
+		                                <li  {% if message.tags %} class=" {{ message.tags }} " {% endif %}> {{ message }} </li>
+		                                {% endfor %}
+		                            </ul>
+		                        {% endif %}
+	                        </form>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</main>
+{% endblock %}

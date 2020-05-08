@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+	<main class="login-form">
+	    <div class="cotainer-fluid">
+	        <div class="row justify-content-center">
+	            <div class="col-md-10">
+	                <div class="card">
+	                    <div class="card-header text-center">Update Flat {{ object.tower }} / {{ object.flat }}<i class="fas fa-cloud"></i></div>
+	                        <div class="card-body">
+	                        <form action="" method="post">
+	                            {% csrf_token %}
+	                            {{ form|crispy }}
+	                            <div class="row">
+	                            	<input type="submit" name="submit" class="btn btn-primary btn-block">
+	                            </div>
+	                            {% if errors %}
+	                                {% for e in errors %}
+	                                    <div class="alert alert-danger">
+	                                        <strong>{{ e|escape }}</strong>
+	                                    </div>
+	                                {% endfor %}
+	                            {% endif %}
+	                        </form>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</main>
+{% endblock %}
