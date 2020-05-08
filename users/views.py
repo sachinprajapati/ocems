@@ -477,3 +477,24 @@ def SMSReport(request):
 				print(e)
 				context['error'] = e
 	return render(request, 'users/smshistory.html', context)
+
+@AdminRequired
+def SelectFlat(request):
+	context = {}
+	if request.method == 'POST':
+		try:
+			flat = Flats.objects.get(tower=request.POST["tower"], flat=request.POST["flat-no"])
+			return redirect(reverse_lazy('users:update_flat', kwargs={'pk': flat.id}))
+		except Exception as e:
+			context["errors"] = [e]
+	return render(request, 'users/select_flat.html', context)
+
+
+@method_decorator(AdminRequired, name="dispatch")
+class UpdateFlatView(SuccessMessageMixin, UpdateView):
+	model = Flats
+	fields = ['owner', 'phone', 'email']
+	success_url = reverse_lazy('users:select_flat')
+
+	def get_success_message(self, cleaned_data):
+	    return "Successfully Updated %(tower)s / %(flat)s" % {'tower': self.object.tower, 'flat': self.object.flat}

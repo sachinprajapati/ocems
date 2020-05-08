@@ -68,6 +68,9 @@ class Flats(models.Model):
 	def getMFTotal(self):
 		return self.getMaintance()+self.getFixed()
 
+	def get_absolute_url(self):
+		return reverse('users:select_flat')
+
 CONSUMPTION_STATUS = (
 	(0, _("Enough Balance")),
     (1, _("Low Balance")),
