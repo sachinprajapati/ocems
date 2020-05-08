@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='OtherMaintance',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('price', models.PositiveIntegerField()),
-                ('name', models.CharField(max_length=255)),
-                ('start_dt', models.DateTimeField()),
-                ('end_dt', models.DateTimeField(blank=True, null=True)),
-            ],
-        ),
+        # migrations.CreateModel(
+        #     name='OtherMaintance',
+        #     fields=[
+        #         ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+        #         ('price', models.PositiveIntegerField()),
+        #         ('name', models.CharField(max_length=255)),
+        #         ('start_dt', models.DateTimeField()),
+        #         ('end_dt', models.DateTimeField(blank=True, null=True)),
+        #     ],
+        # ),
     ]
