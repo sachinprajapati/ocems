@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpResponse, JsonResponse, Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -64,14 +64,13 @@ def SessionFlat(function):
 				request.session["flat"] = flats[0].pk
 			elif len(flats) > 1:
 				if not request.session.get("flat"):
-					return redirect(reverse_lazy("resident:select_flat"))
+					return HttpResponseRedirect(reverse_lazy("resident:select_flat"))
 		return function(request, *args, **kw)
 	return wrapper
 
 @login_required
 @SessionFlat
 def Dashboard(request):
-	print(request.session)
 	if request.user.is_staff:
 		return render(request, 'users/dashboard.html', {})
 	else:
@@ -116,9 +115,7 @@ def RechargeReceiptView(request):
 	context['errors'] = []
 	if request.method == "POST":
 		data = request.POST
-		print("data is", data)
 		fl = Flats.objects.get(id=data.get("id"))
-		print("flat is ", fl)
 		rch = Recharge.objects.filter(flat=fl).order_by("-dt")[0]
 		context = {
 			"flat": fl,
@@ -484,7 +481,7 @@ def SelectFlat(request):
 	if request.method == 'POST':
 		try:
 			flat = Flats.objects.get(tower=request.POST["tower"], flat=request.POST["flat-no"])
-			return redirect(reverse_lazy('users:update_flat', kwargs={'pk': flat.id}))
+			return redirect(reverse_lazy('users:admin_update_flat', kwargs={'pk': flat.id}))
 		except Exception as e:
 			context["errors"] = [e]
 	return render(request, 'users/select_flat.html', context)
@@ -494,7 +491,7 @@ def SelectFlat(request):
 class UpdateFlatView(SuccessMessageMixin, UpdateView):
 	model = Flats
 	fields = ['owner', 'phone', 'email']
-	success_url = reverse_lazy('users:select_flat')
+	success_url = reverse_lazy('users:admin_select_flats')
 
 	def get_success_message(self, cleaned_data):
 	    return "Successfully Updated %(tower)s / %(flat)s" % {'tower': self.object.tower, 'flat': self.object.flat}
