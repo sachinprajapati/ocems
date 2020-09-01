@@ -11,6 +11,7 @@ import pytz
 import socket
 import calendar
 import requests
+from datetime import datetime
 
 def dt_now():
 	dt = timezone.now()
@@ -142,14 +143,18 @@ def update_stock(sender, instance, created, **kwargs):
 		print("cannot send message to ", instance)
 
 
-def get_days(start_dt, end_dt, month):
+def get_days(start_dt, end_dt, month, year):
+	print("getting days")
 	if not end_dt:
-		end_dt = calendar.monthrange(start_dt.year,month)[1]
-		if start_dt.month == month:
-			start_day = start_dt.day
-		else:
-			start_day = 1
-		return (end_dt-start_day)+1
+		print("in not")
+		end_dt = calendar.monthrange(year, month)[1]
+	tmp_end_dt = datetime(year, month, calendar.monthrange(year, month)[1]).date()
+	tmp_start_dt = datetime(year, month, 1).date()
+	print(start_dt, end_dt, tmp_start_dt, tmp_end_dt)
+	if end_dt > tmp_end_dt:
+		end_dt = tmp_end_dt
+	if start_dt < tmp_start_dt:
+		start_dt = tmp_start_dt
 	return end_dt.day-start_dt.day+1
 
 
@@ -195,8 +200,10 @@ class MonthlyBill(models.Model):
 				if i.end_dt:
 					if i.end_dt.month>=self.month and i.end_dt.year>=self.year:
 						l.append(i)
-				else:
+				elif i.start_dt.month == self.month:
+					print('in else')
 					l.append(i)
+			print('return is',l)
 			return l
 
 	def get_OtherMaintanceTotal(self):
@@ -205,7 +212,7 @@ class MonthlyBill(models.Model):
 		total = 0
 		om = self.get_OtherMaintance()
 		for i in om:
-			days = get_days(i.start_dt, i.end_dt, self.month)
+			days = get_days(i.start_dt, i.end_dt, self.month, self.year)
 			total += ((self.flat.flat_size*i.price)*(12/365))*days
 		return total
 

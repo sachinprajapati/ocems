@@ -126,28 +126,23 @@ def Billing():
 	MonthlyBill.objects.bulk_create(create)
 
 
-def RefMaintance():
-	c = Consumption.objects.filter(flat__status=1).exclude(flat__tower=17)
-	maint = []
-	for i in c:
-		print(i)
-		last3 = Maintance.objects.filter(flat=i.flat).order_by("-dt")[:3]
-		for m in last3:
-			i.amt_left = float(i.amt_left)+(float(m.mcharge)-i.flat.getMaintance())
-			m.mcharge = i.flat.getMaintance()
-			maint.append(m)
-		print(i.amt_left)
-	Maintance.objects.bulk_update(maint, ['mcharge'])
-	Consumption.objects.bulk_update(c, ['amt_left'])
+def BillingLate():
+	print("billing")
+	create = []
+	dt = date(2020, 7, 2)
+	next_dt = date(2020, 7, 1)
+	bills = MonthlyBill.objects.filter(month=6, year=2020)
+	print("count of bills", len(bills))
+	for b in bills:
+		reading = Reading.objects.filter(flat=b.flat, dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by("-dt")[0]
+		da = DeductionAmt.objects.get(tower=b.flat.tower)
+		r = Recharge.objects.filter(flat=b.flat, dt__month=7, dt__year=2020).aggregate(Sum('recharge'))
+		if not r['recharge__sum']:
+			r['recharge__sum'] = 0
+		flat_amt = float(reading.amt_left)+(b.flat.getMFTotal()*2)-r['recharge__sum']
+		MonthlyBill.objects.filter(id=b.id).update(end_eb=reading.eb, end_dg=reading.dg, cls_amt=flat_amt)
+		create.append(MonthlyBill(flat=b.flat, month=next_dt.month, year=next_dt.year, start_eb=reading.eb, \
+			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=flat_amt, cls_amt=0, eb_price=float(da.eb_price), \
+				dg_price=float(da.dg_price)))
+	MonthlyBill.objects.bulk_create(create)
 
-
-def MaintanceDebit():
-	c = list(Consumption.objects.filter(flat__status=1))
-	db = []
-	for i in c:
-		db_amt = i.flat.getMFTotal()*3
-		db.append(Debit(flat=i.flat, amt_left=i.amt_left, debit_amt=db_amt, eb=i.eb, dg=i.dg, remarks='Maintance And Fixed of December 2019 for 3 days'))
-		i.amt_left = float(i.amt_left)-db_amt
-
-	Debit.objects.bulk_create(db)
-	Consumption.objects.bulk_update(c, ['amt_left'])
