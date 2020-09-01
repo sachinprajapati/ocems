@@ -144,17 +144,15 @@ def update_stock(sender, instance, created, **kwargs):
 
 
 def get_days(start_dt, end_dt, month, year):
-	print("getting days")
-	if not end_dt:
-		print("in not")
-		end_dt = calendar.monthrange(year, month)[1]
 	tmp_end_dt = datetime(year, month, calendar.monthrange(year, month)[1]).date()
 	tmp_start_dt = datetime(year, month, 1).date()
-	print(start_dt, end_dt, tmp_start_dt, tmp_end_dt)
-	if end_dt > tmp_end_dt:
+	if not end_dt:
+		end_dt = tmp_end_dt
+	elif end_dt > tmp_end_dt:
 		end_dt = tmp_end_dt
 	if start_dt < tmp_start_dt:
 		start_dt = tmp_start_dt
+	print("days is", end_dt.day-start_dt.day+1)
 	return end_dt.day-start_dt.day+1
 
 
@@ -191,20 +189,20 @@ class MonthlyBill(models.Model):
 	def get_OtherMaintance(self):
 		if self.flat.tower==17:
 			return None
-		if self.month<=11 and self.year==2019:
-			return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
-		else:
-			om = OtherMaintance.objects.filter(start_dt__year__lte=self.year)
-			l = []
-			for i in om:
-				if i.end_dt:
-					if i.end_dt.month>=self.month and i.end_dt.year>=self.year:
-						l.append(i)
-				elif i.start_dt.month == self.month:
-					print('in else')
+		# if self.month<=11 and self.year==2019:
+		# 	return OtherMaintance.objects.filter(start_dt__month=self.month, start_dt__year=self.year)
+		# else:
+		end_dt = datetime(self.year, self.month, calendar.monthrange(self.year, self.month)[1]).date()
+		om = OtherMaintance.objects.filter(start_dt__lte=end_dt)
+		# om = OtherMaintance.objects.filter(start_dt__year__lte=self.year)
+		l = []
+		for i in om:
+			if i.end_dt:
+				if i.end_dt >= datetime(self.year, self.month, 1).date():
 					l.append(i)
-			print('return is',l)
-			return l
+			elif i.start_dt.month == self.month:
+				l.append(i)
+		return l
 
 	def get_OtherMaintanceTotal(self):
 		if self.flat.tower == 17:
