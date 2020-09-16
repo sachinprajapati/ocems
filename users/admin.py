@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 
 from .models import *
 
@@ -22,3 +23,4 @@ admin.site.register(MessageTemplate)
 admin.site.register(SentMessage)
 admin.site.register(Debit)
 admin.site.register(OtherMaintance)
+admin.site.register(PowerCut)

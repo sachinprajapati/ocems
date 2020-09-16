@@ -30,6 +30,7 @@ urlpatterns = [
 	path('tower-update/<int:pk>/', TowerUpdateView.as_view(), name="tower_update"),
 	path('admin-select-flats/', SelectFlat, name="admin_select_flats"),
 	path('admin-update-flat/<int:pk>', UpdateFlatView.as_view(), name="admin_update_flat"),
+	path('flat-power-cut/', FlatPowerCut.as_view(), name="flat_power_cut"),
 	path('debit/', DebitView.as_view(), name="debit"),
 	path('sms-report/', SMSReport, name="sms_report"),
 	path('create-login/', CreateLogin, name="create_login"),

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Sum, Q
@@ -7,6 +8,9 @@ from django.urls import reverse
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+
+from ocems.settings import conn
+
 import pytz
 import socket
 import calendar
@@ -276,16 +280,23 @@ class Reading(models.Model):
 class DeductionAmt(models.Model):
 	tower = models.PositiveIntegerField(unique=True)
 	tower_name = models.CharField(max_length=10)
-	eb_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="Utility Rate")
-	dg_price = models.DecimalField(max_digits=19, decimal_places=4, verbose_name="DG Rate")
-	maintance = models.DecimalField(max_digits=19, decimal_places=4)
-	fixed_amt = models.DecimalField(max_digits=19, decimal_places=4)
+	eb_price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Utility Rate")
+	dg_price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="DG Rate")
+	maintance = models.DecimalField(max_digits=19, decimal_places=2)
+	fixed_amt = models.DecimalField(max_digits=19, decimal_places=2)
+	set_load = models.FloatField(null=True)
 
 	def __str__(self):
 		return '{} eb {} dg {} maintance {} fixed {}'.format(self.tower, self.eb_price, self.dg_price, self.maintance, self.fixed_amt)
 
 	def get_update_url(self):
 		return reverse('users:tower_update', kwargs={'pk': self.pk})
+
+	def save(self, *args, **kwargs):
+		cur = conn.cursor()
+		cur.execute("update [EMS].[dbo].[TblConsumption] set max_load=? where Tower_No=?", [self.set_load, self.tower])
+		conn.commit()
+		super().save(*args, **kwargs)
 
 
 
@@ -406,4 +417,12 @@ class OtherMaintance(models.Model):
 
 	def __str__(self):
 		return 'from {} to {} of {} price {}'.format(self.start_dt, self.end_dt, self.name, self.price)
+
+class PowerCut(models.Model):
+	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
+	running_load = models.FloatField()
+	dt = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+	def __str__(self):
+		return '{} at {}'.format(self.flat, self.dt)
 	

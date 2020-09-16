@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <table class="table table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">Sno.</th>
+                        <th scope="col">Tower</th>
+                        <th scope="col">Flat</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Running Load</th>
+                        <th scope="col">Power Cut At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for c in object_list %}
+                          <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ c.flat.tower }}</td>
+                            <td>{{ c.flat.flat }}</td>
+                            <td>{{ c.flat.owner  }}</td>
+                            <td>{{ c.running_load }}</td>
+                            <td>{{ c.dt }}</td>
+                          </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

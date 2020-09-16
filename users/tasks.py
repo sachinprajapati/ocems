@@ -14,6 +14,7 @@ from ocems.settings import conn
 import urllib.request
 import json
 import pytz
+import time
 
 #cur = conn.cursor()
 		
@@ -131,47 +132,21 @@ def Billing():
 	MonthlyBill.objects.bulk_update(objs, ['end_eb', 'end_dg', 'cls_amt'])
 	MonthlyBill.objects.bulk_create(create)
 
-
-def LateBill():
-	print("billing")
-	create = []
-	dt = date(2020, 8, 31)
-	next_dt = dt+timedelta(days=1)
-	bills = MonthlyBill.objects.filter(month=dt.month, year=dt.year)
-	# bills = MonthlyBill.objects.filter(month=2, year=2020, flat__status=1)
-	objs = []
-	for b in bills:
-		reading = Reading.objects.filter(flat=b.flat, dt__day=next_dt.day, dt__month=next_dt.month, dt__year=next_dt.year).order_by("dt")[0]
-		da = DeductionAmt.objects.get(tower=b.flat.tower)
-		# MonthlyBill.objects.filter(id=b.id).update(end_eb=reading.eb, end_dg=reading.dg, cls_amt=reading.amt_left)
-		b.end_eb = reading.eb
-		b.end_dg = reading.dg
-		b.cls_amt = reading.amt_left
-		objs.append(b)
-		create.append(MonthlyBill(flat=b.flat, month=next_dt.month, year=next_dt.year, start_eb=reading.eb, \
-			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=reading.amt_left, cls_amt=0, eb_price=float(da.eb_price), \
-				dg_price=float(da.dg_price)))
-	MonthlyBill.objects.bulk_update(objs, ['end_eb', 'end_dg', 'cls_amt'])
-	MonthlyBill.objects.bulk_create(create)
-
-
-def BillingLate():
-	print("billing")
-	create = []
-	dt = date(2020, 7, 2)
-	next_dt = date(2020, 7, 1)
-	bills = MonthlyBill.objects.filter(month=6, year=2020)
-	print("count of bills", len(bills))
-	for b in bills:
-		reading = Reading.objects.filter(flat=b.flat, dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by("-dt")[0]
-		da = DeductionAmt.objects.get(tower=b.flat.tower)
-		r = Recharge.objects.filter(flat=b.flat, dt__month=7, dt__year=2020).aggregate(Sum('recharge'))
-		if not r['recharge__sum']:
-			r['recharge__sum'] = 0
-		flat_amt = float(reading.amt_left)+(b.flat.getMFTotal()*2)-r['recharge__sum']
-		MonthlyBill.objects.filter(id=b.id).update(end_eb=reading.eb, end_dg=reading.dg, cls_amt=flat_amt)
-		create.append(MonthlyBill(flat=b.flat, month=next_dt.month, year=next_dt.year, start_eb=reading.eb, \
-			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=flat_amt, cls_amt=0, eb_price=float(da.eb_price), \
-				dg_price=float(da.dg_price)))
-	MonthlyBill.objects.bulk_create(create)
+@periodic_task(run_every=crontab(minute='*/5'))
+def CheckLoad():
+	cur = conn.cursor()
+	sql = "SELECT flat_pkey, set_load FROM [EMS].[dbo].[TblConsumption] where load>max_load"
+	c = cur.execute(sql)
+	c = c.fetchall()
+	pc = []
+	if c:
+		pc = [PowerCut(flat_id=i[0], running_load=i[1]) for i in c]
+		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=3 where flat_pkey=?", [[i[0]] for i in c])
+		conn.commit()
+		PowerCut.objects.bulk_create(pc)
+		time.sleep(1)
+		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=1 where flat_pkey=?", [[i[0]] for i in c])
+		conn.commit()
+	else:
+		print("nothing")
 
