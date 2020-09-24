@@ -132,21 +132,28 @@ def Billing():
 	MonthlyBill.objects.bulk_update(objs, ['end_eb', 'end_dg', 'cls_amt'])
 	MonthlyBill.objects.bulk_create(create)
 
-@periodic_task(run_every=crontab(minute='*/5'))
+# @periodic_task(run_every=crontab(minute='*/5'))
 def CheckLoad():
 	cur = conn.cursor()
-	sql = "SELECT flat_pkey, set_load FROM [EMS].[dbo].[TblConsumption] where load>max_load"
-	c = cur.execute(sql)
-	c = c.fetchall()
-	pc = []
-	if c:
-		pc = [PowerCut(flat_id=i[0], running_load=i[1]) for i in c]
-		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=3 where flat_pkey=?", [[i[0]] for i in c])
-		conn.commit()
-		PowerCut.objects.bulk_create(pc)
-		time.sleep(1)
-		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=1 where flat_pkey=?", [[i[0]] for i in c])
-		conn.commit()
+	dgsql = "SELECT dgstatus FROM TblDgStatus WHERE id=1"
+	dgsql = cur.execute(dgsql)
+	dgstatus = dgsql.fetchone()
+	if dgstatus[0]:
+		print("dg is on")
+		sql = "SELECT flat_pkey, cur_load, status FROM [EMS].[dbo].[TblConsumption] where cur_load>max_load"
+		c = cur.execute(sql)
+		c = c.fetchall()
+		pc = []
+		if c:
+			pc = [PowerCut(flat_id=i[0], running_load=i[1]) for i in c]
+			cur.executemany("update [EMS].[dbo].[TblConsumption] set status=3 where flat_pkey=?", [[i[0]] for i in c])
+			conn.commit()
+			PowerCut.objects.bulk_create(pc)
+			time.sleep(60*2)
+			cur.executemany("update [EMS].[dbo].[TblConsumption] set status=? where flat_pkey=?", [[i[2], i[0]] for i in c])
+			conn.commit()
+		else:
+			print("nothing")
 	else:
-		print("nothing")
+		print("dg is off")
 
