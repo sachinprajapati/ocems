@@ -13,6 +13,7 @@ from django.utils.decorators import method_decorator
 from django.forms.models import model_to_dict
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 from django.views.generic import TemplateView
 from django.db.models import Sum, Count, Func, F
 from django.utils import timezone
@@ -21,6 +22,7 @@ from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 
 from .models import *
+from resident.models import *
 from .forms import *
 import json
 import pytz
@@ -349,23 +351,6 @@ class MeterChangeView(SuccessMessageMixin, CreateView):
 	success_url = reverse_lazy('users:meter_change')
 	success_message = "%(flat)s's Meter Changed Successfully"
 
-# @method_decorator(StaffRequired, name='dispatch')
-# class BillAdjusmentView(SuccessMessageMixin, ListView):
-# 	template_name = 'users/bill_adjustment.html'
-# 	success_url = reverse_lazy('users:meter_change')
-# 	success_message = "%(flat)s's Meter Changed Successfully"
-# 	model = MonthlyBill
-# 	# paginate_by = 10
-
-# 	def get_queryset(self):
-# 		try:
-# 			date = datetime.strptime(self.request.GET.get('month'), "%Y-%m").date()
-# 			print("date is ", date)
-# 			result = MonthlyBill.objects.filter(year=date.year, month=date.month)
-# 		except Exception as e:
-# 			print(e)
-# 			return None
-# 		return result
 
 def BillAdjusmentView(request):
 	date = datetime.now()
@@ -502,3 +487,59 @@ class UpdateFlatView(SuccessMessageMixin, UpdateView):
 
 	def get_success_message(self, cleaned_data):
 	    return "Successfully Updated %(tower)s / %(flat)s" % {'tower': self.object.tower, 'flat': self.object.flat}
+
+
+@method_decorator(StaffRequired, name="dispatch")
+class CreateNotice(SuccessMessageMixin, CreateView):
+	model = Notice
+	fields = ('sub', 'text')
+	template_name = 'users/flats_form.html'
+	success_message = "Notice Successfully Created"
+	success_url = reverse_lazy('users:create_notice')
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['heading_title'] = 'Create Notice'
+		return context
+
+
+@method_decorator(StaffRequired, name='dispatch')
+class NoticeList(ListView):
+	model = Notice
+	template_name = "users/notice_list.html"
+	queryset = Notice.objects.filter().order_by('-dt')
+
+
+@method_decorator(StaffRequired, name='dispatch')
+class ActiveNoticeList(ListView):
+	model = Notice
+	template_name = "users/notice_list.html"
+	queryset = Notice.objects.filter(status=1).order_by('-dt')
+
+@method_decorator(StaffRequired, name='dispatch')
+class NoticeUpdate(UpdateView):
+	model = Notice
+	fields = ('sub', 'status', 'text')
+	success_message = 'Notice Successfully Updated'
+	template_name = "users/flats_form.html"
+	success_url = reverse_lazy("users:notice_list")
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['heading_title'] = 'update Notice'
+		return context
+	
+	
+@method_decorator(StaffRequired, name="dispatch")
+class ComplaintList(ListView):
+	model = Complaint
+	template_name = 'users/complaint_list.html'
+
+	def get_queryset(self):
+		return Complaint.objects.filter(status=self.kwargs['status'])
+	
+@method_decorator(StaffRequired, name="dispatch")
+class ComplaintDetail(DetailView):
+	model = Complaint
+	template_name = 'users/complaint_detail.html'
+

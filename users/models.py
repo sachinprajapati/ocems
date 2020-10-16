@@ -425,4 +425,3 @@ class PowerCut(models.Model):
 
 	def __str__(self):
 		return '{} at {}'.format(self.flat, self.dt)
-	

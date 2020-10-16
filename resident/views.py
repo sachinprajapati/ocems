@@ -1,18 +1,23 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.views.generic.list import ListView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
+from django.views.generic.detail import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView
 
 from datetime import datetime
 import dateutil.relativedelta
 from users.models import *
+from .models import *
 # Create your views here.
 
 
@@ -100,3 +105,29 @@ def ChangePassword(request):
 		else:
 		    messages.error(request, 'Please correct the error below.')
 	return render(request, 'resident/change_password.html', context)
+
+@method_decorator(ResidentRequired, name="dispatch")
+class NoticeDetail(DetailView):
+	model = Notice
+	template_name = "resident/notice_detail.html"
+
+
+@method_decorator(ResidentRequired, name='dispatch')
+class CreateComplaint(SuccessMessageMixin, CreateView):
+	model = Complaint
+	fields = ('phone', 'remark')
+	template_name = 'resident/create_form.html'
+	success_url = reverse_lazy('resident:create_complaints')
+
+	def form_valid(self, form):
+		obj = form.save(commit=False)
+		obj.flat_id = self.request.session["flat"]
+		obj.save()
+		messages.success(self.request, "Complaint Successfully Registered. Complaint Number {}".format(obj.id))
+		return super().form_valid(form)
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		context['heading_title'] = 'Raise Complaint'
+		return context
+

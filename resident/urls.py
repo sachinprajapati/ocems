@@ -11,4 +11,6 @@ urlpatterns = [
 	path('select-flat/', SelectFlat.as_view(), name="select_flat"),
 	path('active-flat/<int:pk>/', ActiveFlat, name="active_flat"),
 	path('change-password/', ChangePassword, name="change_password"),
+	path('raise-complaint/', CreateComplaint.as_view(), name="create_complaints"),
+	path('notice/<int:pk>', NoticeDetail.as_view(), name="notice_view"),
 ]

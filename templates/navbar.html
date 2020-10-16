@@ -48,6 +48,23 @@
           <a class="dropdown-item" href="{% url 'users:update_login' %}">Update Flat Login</a>
         </div>
       </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Notices
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="{% url 'users:create_notice' %}">Create Notice</a>
+          <a class="dropdown-item" href="{% url 'users:active_notice' %}">Active Notice List <span class="badge badge-info">{{ notices_count }}</span></a>
+          <a class="dropdown-item" href="{% url 'users:notice_list' %}">Notice List</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Complaints
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="{% url 'users:new_complaints' 1 %}">New Complaints <span class="badge badge-danger">{{ new_comp|length }}</a>
+          <a class="dropdown-item" href="{% url 'users:new_complaints' 2 %}">In Progress <span class="badge badge-info">{{ in_comp|length }}</span></a>
+        </div>
+      </li>
       {% if request.user.is_superuser %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
