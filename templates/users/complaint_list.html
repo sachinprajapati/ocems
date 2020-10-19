@@ -12,7 +12,6 @@
                         <th scope="col">Complaint No.</th>
                         <th scope="col">Tower/Flat</th>
                         <th scope="col">Phone</th>
-                        <th scope="col">Complaint</th>
                         <th scope="col">Status</th>
                         <th scope="col">Detail</th>
                       </tr>
@@ -23,10 +22,26 @@
                           <th scope="row">{{ i.id }}</th>
                           <td>{{ i.flat.tower }}/{{ i.flat.flat }}</td>
                           <td>{{ i.phone }}</td>
-                          <td>{{ i.remark }}</td>
                           <td>{{ i.get_status_display }}</td>
-                          <td><a href="{% url 'users:complaint_detail' i.pk %}" class="badge badge-primary">Detail</a></td>
+                          <td><button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#staticBackdrop{{ i.id }}">Detail</button></td>
                         </tr>
+                          <div class="modal fade" id="staticBackdrop{{ i.id }}" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">{{ i.flat.tower }}/{{ i.flat.flat }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">{{ i.remark }}</div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Understood</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                     {% endfor %}
                   </tbody>
                 </table>

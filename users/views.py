@@ -537,9 +537,5 @@ class ComplaintList(ListView):
 
 	def get_queryset(self):
 		return Complaint.objects.filter(status=self.kwargs['status'])
-	
-@method_decorator(StaffRequired, name="dispatch")
-class ComplaintDetail(DetailView):
-	model = Complaint
-	template_name = 'users/complaint_detail.html'
+
 
