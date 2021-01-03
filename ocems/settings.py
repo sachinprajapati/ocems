@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'users',
+    'resident',
     'crispy_forms',
     'django_extensions',
     'djcelery',
@@ -70,6 +72,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'resident.context_processors.getSelectedFlat',
+                'resident.context_processors.getNotice',
+                'resident.context_processors.getComplaints',
             ],
         },
     },
@@ -167,3 +172,5 @@ LOGIN_REDIRECT_URL = '/dashboard'
 LOGOUT_REDIRECT_URL = '/'
 
 CELERY_BROKER_URL = 'amqp://localhost'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

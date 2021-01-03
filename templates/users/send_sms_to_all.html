@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                  <div class="card-header text-center">Send SMS ( OC Maintance )<i class="fas fa-cloud"></i></div>
+                    <div class="card-body">
+                        <form action="" method="post">
+                        {% csrf_token %}
+                            {{  forms|crispy }}
+                            <input type="submit" class="btn btn-primary">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

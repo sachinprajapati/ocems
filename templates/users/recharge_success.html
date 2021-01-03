@@ -316,7 +316,7 @@ Email Id: orangecounty.csk@gmail.com
                                                         <tbody>
                                                         <tr>
                                                             <td>Previous Balance</td>
-                                                            <td class="alignright">{{ prevamt|floatformat:2 }}</td>
+                                                            <td class="alignright">{{ flat.consumption.amt_left|floatformat:2 }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td>Current Recharge :</td>
@@ -324,7 +324,7 @@ Email Id: orangecounty.csk@gmail.com
                                                         </tr>
                                                          <tr>
                                                             <td>Current Balance :</td>
-                                                            <td class="alignright">{{ flat.consumption.amt_left|floatformat:2 }}</td>
+                                                            <td class="alignright">{{ updated_bal|floatformat:2 }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td style="font-size: 10px;">Date & Time :- {{ dt }}</td>

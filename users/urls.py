@@ -40,5 +40,6 @@ urlpatterns = [
 	path('active-notice/', ActiveNoticeList.as_view(), name="active_notice"),
 	path('update-notice/<int:pk>/', NoticeUpdate.as_view(), name="notice_update"),
 	path('complaints/<int:status>', ComplaintList.as_view(), name="new_complaints"),
+	path('send-sms-to-all/', SendSmsToAll, name="send_sms_to_all"),
 	#path('design/', Design, name="design"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

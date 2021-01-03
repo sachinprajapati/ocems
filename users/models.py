@@ -38,7 +38,7 @@ BOOLEAN_BASIS = (
 FLAT_TYPE = [
 	(1, 'Penthouse'),
 	(2, '2BHK'),
-	(2, '3BHK'),
+	(3, '3BHK'),
 ]
 
 class Flats(models.Model):
@@ -226,25 +226,18 @@ class MonthlyBill(models.Model):
 		return total
 
 	def get_TotalMaintance(self):
-		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
-		if not m['mcharge__sum']:
-			m['mcharge__sum'] = 0
-		# return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
+		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge')) or 0
 		return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
-		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))
-		if not f['famt__sum']:
-			f['famt__sum'] = 0
+		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt')) or 0
 		return float(f['famt__sum'])
 
 	def Debits(self):
 		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
 
 	def TotalDebits(self):
-		deits = self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum']
-		if not deits:
-			deits = 0
+		deits = self.Debits().aggregate(Sum('debit_amt'))['debit_amt__sum'] or 0
 		return deits+self.get_OtherMaintanceTotal()
 
 	def get_TotalUsed(self):
@@ -252,9 +245,7 @@ class MonthlyBill(models.Model):
 		return float(t)
 
 	def get_RechargeInMonth(self):
-		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge'))
-		if not r['recharge__sum']:
-			r['recharge__sum'] = 0
+		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge')) or 0
 		return float(r['recharge__sum'])
 
 	def get_Adjustment(self):
@@ -417,11 +408,16 @@ class Debit(models.Model):
 	def __str__(self):
 		return '{} debit amt {} at {}'.format(self.flat, self.amt_left, self.dt)
 
+CHARGE_FLAT_TYPE = [
+	
+]
+
 class OtherMaintance(models.Model):
 	price = models.PositiveIntegerField()
 	name = models.CharField(max_length=255)
 	start_dt = models.DateField()
 	end_dt = models.DateField(null=True, blank=True)
+	tower = models.ManyToManyField(DeductionAmt)
 
 	def __str__(self):
 		return 'from {} to {} of {} price {}'.format(self.start_dt, self.end_dt, self.name, self.price)

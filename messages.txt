@@ -1,3 +1,4 @@
 1:OC EMS : Hello {} Your Flat: {} Tower: OC {} recharged with Amount(Rs): {}.Current Balance: {}
 2:OC EMS : Hello {} Current Balance of your Flat: {} Tower: {} is: {}.Please Recharge Immediately.
 3:OC EMS : Hello {} Current Balance of your Flat: {} Tower: {} is: {}.Please Recharge Immediately To Continue Power Service.
+4:Hi {} your balance is {:.2f} of tower {} and flat {}

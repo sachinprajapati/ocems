@@ -23,39 +23,15 @@ class RechargeForm(ModelForm):
 
 	def save(self, commit=True):
 		m = super(RechargeForm, self).save(commit=False)
-		try:
-			with transaction.atomic():
-				obj = Consumption.objects.get(flat=m.flat)
-				m.amt_left = obj.amt_left
-				obj.amt_left += m.recharge
-				m.eb = obj.eb
-				m.dg = obj.dg
-				if obj.deduction_status == "Y":
-					obj.deduction_status = 2
-				elif obj.deduction_status == "N":
-					obj.deduction_status = 1
-				status = getConsumptionStatus(obj.amt_left)
-				if conn:
-					cur = conn.cursor()
-					cur.execute("update [TblConsumption] set status=? where flat_pkey=?", [status, m.flat.id])
-					conn.commit()
-				obj.status = status
-				obj.save()
-				m.save()
-				return m
-		except Exception as e:
-			print(e)
-			return False
-
-
-def SendSMS(text, flat):
-		URL = "https://www.txtguru.in/imobile/api.php"
-		PARAMS = {'username': 'orangecounty.csk',
-          'password': '86617614',
-          'source': 'OCAOAM',
-          'dmobile': '91{}'.format(flat.phone),
-          'message': text}
-		r = requests.get(url = URL, params = PARAMS)
+		obj = Consumption.objects.get(flat=m.flat)
+		m.amt_left = obj.amt_left
+		obj.amt_left += m.recharge
+		m.eb = obj.eb
+		m.dg = obj.dg
+		obj.status = getConsumptionStatus(obj.amt_left)
+		obj.save()
+		m.save()
+		return m
 
 class SendSMSForm(forms.Form):
 	flat_id = forms.IntegerField()
@@ -73,13 +49,12 @@ class SendSMSForm(forms.Form):
 		flat = self.cleaned_data['flat_id']
 		bal = self.cleaned_data['balinfo']
 		if bal:
-			text = "Hi {} your balance is {} of tower {} and flat {}".format(flat.owner, flat.consumption.amt_left, flat.tower, flat.flat)
-			SendSMS(text, flat)
+			# text = "Hi {} your balance is {} of tower {} and flat {}".format(flat.owner, flat.consumption.amt_left, flat.tower, flat.flat)
+			# SendSMS(text, flat)
+			mt = MessageTemplate.objects.get(m_type=4)
+			text = mt.text.format(flat.owner, flat.consumption.amt_left, flat.tower, flat.flat)
+			mt.sendMessage(text, flat)
 		return bal
-
-
-	def send_email(self):
-		print("send message")
 
 
 class MeterChangeForm(ModelForm):
@@ -115,3 +90,9 @@ class MeterChangeForm(ModelForm):
 		except Exception as e:
 			print(e)
 			return False
+
+APPROVAL_CHOICES = [(i.pk, i.tower) for i in DeductionAmt.objects.filter().order_by("tower")]
+
+class MyForm(forms.Form):
+	towers = forms.MultipleChoiceField(choices=APPROVAL_CHOICES, widget=forms.CheckboxSelectMultiple())
+	message = forms.Textarea()

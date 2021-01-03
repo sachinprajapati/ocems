@@ -33,6 +33,16 @@ $(document).ready(function() {
     return /^\d*$/.test(value);
   });
 });
+$(document).ready(function(){
+    $('#bal-info').on('change', function() {
+        var val = this.checked ? this.value : '';
+        if(val){
+            $("#message-box").css("display", "none");
+        }else{
+            $("#message-box").css("display", "block");
+        }
+    });
+});
 </script>
 <script>
 $(document).ready(function(){
@@ -138,11 +148,11 @@ $(document).ready(function(){
                                 <div class="">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label">Balance Info</label>
-                                        <input type="checkbox" id="left" class="form-control" name="balinfo">
+                                        <input type="checkbox" id="bal-info" class="form-control" name="balinfo">
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row" id="message-box">
                                 <div class="col-8">
                                     <div class="form-group input-group-sm">
                                         <label for="email_address" class="col-form-label">Message</label>

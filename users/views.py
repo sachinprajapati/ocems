@@ -16,7 +16,7 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic import TemplateView
 from django.db.models import Sum, Count, Func, F
-from django.utils import timezone
+from django.db import connection
 from django.contrib.auth.models import User
 
 from datetime import datetime, timedelta
@@ -42,19 +42,19 @@ def dt_now():
 	return localtz
 
 def AdminRequired(function):
-    def wrapper(request, *args, **kw):
-        if not request.user.is_superuser and not request.user.is_staff:
-        	return redirect(reverse_lazy("users:dashboard"))
-        else:
-            return function(request, *args, **kw)
-    return wrapper
+	def wrapper(request, *args, **kw):
+		if request.user.is_superuser and request.user.is_staff:
+			return function(request, *args, **kw)
+		else:
+			return redirect(reverse_lazy("users:dashboard"))
+	return wrapper
 
 def StaffRequired(function):
     def wrapper(request, *args, **kw):
-        if not request.user.is_staff:
-        	return redirect(reverse_lazy("users:dashboard"))
+        if request.user.is_staff:
+        	return function(request, *args, **kw)
         else:
-            return function(request, *args, **kw)
+            return redirect(reverse_lazy("users:dashboard"))
     return wrapper
 
 
@@ -93,17 +93,16 @@ def RechargeView(request):
 		if form.is_valid():
 			data = request.POST
 			flat = Flats.objects.get(id=data['flat'])
+			prevamt = flat.consumption.amt_left
 			recharge = int(data['recharge'])
 			if form.save():
 				context = {
 						"flat": flat,
 						'recharge_amt' : recharge,
-						"prevamt" : flat.consumption.amt_left-recharge,
-						"dt": timezone.localtime(timezone.now())
+						"updated_bal" : prevamt+recharge,
+						"dt": timezone.localtime()
 					}
 				return render(request, "users/recharge_success.html", context)
-			else:
-				context['errors'].append("Recharge Failed")
 	context['form'] = form
 	return render(request, 'users/recharge.html', context)
 
@@ -168,7 +167,7 @@ class NegativeBalanceFlats(ListView):
 class PositiveBalanceFlats(ListView):
 	model = Consumption
 	template_name = "users/negative-flats.html"
-	queryset = Consumption.objects.filter(amt_left__gte=0).order_by('flat__tower', 'flat__flat')
+	queryset = Consumption.objects.filter(amt_left__gt=0).order_by('flat__tower', 'flat__flat')
 
 @method_decorator(StaffRequired, name="dispatch")
 class NonDeductionFlats(ListView):
@@ -187,12 +186,12 @@ class FlatPowerCut(ListView):
 @StaffRequired
 def getBillView(request):
 	context = {
-		"date": datetime.today() - dateutil.relativedelta.relativedelta(months=1)
+		"date": datetime.today() - dateutil.relativedelta.relativedelta(months=1),
+		"errors": []
 	}
-	context["errors"] = []
 	if request.method == "POST":
 		data = request.POST
-		if data.get('flat') and data.get('month'):
+		if data.get('flat') and data.get('month') and data.get('flat'):
 			try:
 				flat = Flats.objects.get(pk=data["flat"])
 				date = datetime.strptime(data['month'], "%Y-%m").date()
@@ -339,9 +338,6 @@ class SendSMSView(SuccessMessageMixin, FormView):
 	success_url = '/send-sms/'
 	success_message = 'Sent Message to %(flat_id)s'
 
-	# def form_valid(self, form):
-	# 	print(form)
-	# 	return super().form_valid(form)
 
 
 @method_decorator(AdminRequired, name="dispatch")
@@ -353,11 +349,37 @@ class MeterChangeView(SuccessMessageMixin, CreateView):
 
 
 def BillAdjusmentView(request):
-	date = datetime.now()
 	context = {
-		"object_list": MonthlyBill.objects.filter(year=date.year, month=date.month)[:100],
+		"args": {"type": "month", "name": "month"},
+		"choose_date": True
 	}
-	print(len(context["object_list"]))
+	if request.method == "POST":
+		data = request.POST
+		if data.get('month'):
+			try:
+				date = datetime.strptime(data['month'], "%Y-%m").date()
+				cursor = connection.cursor()
+				sql = ('''SELECT * FROM
+					(SELECT (opn_amt-(((end_eb-start_eb)*eb_price)+((end_dg-start_dg)*dg_price)) +
+						(select sum(recharge) from users_recharge as rc where 
+							EXTRACT(MONTH FROM rc.dt) = {0} and EXTRACT(YEAR FROM rc.dt) = {1} and flat_id=bill.flat_id
+						) - (select sum(mcharge)+sum(famt) from users_maintance as mc where 
+							EXTRACT(MONTH FROM mc.dt) = {0} and EXTRACT(YEAR FROM mc.dt) = {1} and flat_id=bill.flat_id
+						) - (select sum(debit_amt) from users_debit as ud where 
+							EXTRACT(MONTH FROM ud.dt) = {0} and EXTRACT(YEAR FROM ud.dt) = {1} and flat_id=bill.flat_id
+						))-cls_amt
+						AS Adjustment, flat_id	, flat.tower, flat.flat
+					  FROM public.users_monthlybill as bill inner join public.users_flats as flat 
+					  on bill.flat_id = flat.id
+					  where bill.month={0} and bill.year={1} order by flat.tower, flat.flat
+					) as innerTable WHERE Adjustment IS NOT NULL and Adjustment NOT BETWEEN -1 and 1'''.format(date.month, date.year))
+				cursor.execute(sql)
+				row = cursor.fetchall()
+				context["object_list"] = row
+				context["choose_date"] = False
+				context["date"] = date
+			except Exception as e:
+				context['error'] = e
 	return render(request, 'users/bill_adjustment.html', context)
 
 @method_decorator(AdminRequired, name="dispatch")
@@ -437,7 +459,6 @@ class DebitView(SuccessMessageMixin, CreateView):
 	success_message = "%(debit_amt)s successfully debited from %(flat)s"
 
 	def form_valid(self, form):
-		print("instance is", form.instance)
 		cons = Consumption.objects.get(flat=form.instance.flat)
 		form.instance.eb = cons.eb
 		form.instance.dg = cons.dg
@@ -539,3 +560,11 @@ class ComplaintList(ListView):
 		return Complaint.objects.filter(status=self.kwargs['status'])
 
 
+
+@staff_member_required
+def SendSmsToAll(request):
+	form = MyForm(request.POST or None)
+	if request.method == "POST":
+		if form.is_valid():
+			print(form.cleaned_data["towers"])
+	return render(request, 'users/send_sms_to_all.html', {'forms': form})
