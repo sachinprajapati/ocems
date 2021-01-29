@@ -71,12 +71,6 @@ class RechargeHistory(LoginRequiredMixin, ListView):
 	def get_queryset(self):
 		return Recharge.objects.filter(flat__id = self.request.session["flat"]).order_by("-dt")
 
-	def get_context_data(self, *args, **kwargs):
-		# Call the base implementation first to get a context
-		context = super().get_context_data(*args, **kwargs)
-		# Add in a QuerySet of all the books
-		print(context)
-		return context
 
 @method_decorator(ResidentRequired, name='dispatch')
 class ResidentProfile(LoginRequiredMixin, TemplateView):
