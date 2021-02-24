@@ -1,14 +1,16 @@
 from django.contrib import admin
 from django import forms
 
+from decimal import Decimal as dc
 from .models import *
 
 @admin.register(Flats)
 class FlatsAdmin(admin.ModelAdmin):
     ordering = ['tower', 'flat']
-    search_fields = ['tower', 'flat']
+    search_fields = ['=tower', '=flat']
     exclude = ('tower', 'flat')
     readonly_fields = ('user',)
+    list_display = ('tower', 'flat', 'owner', 'Type')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
@@ -31,6 +33,7 @@ class ConsumptionAdmin(admin.ModelAdmin):
     search_fields = ('=flat__tower', '=flat__flat')
     readonly_fields = ('flat', 'meter_change_dt', 'deduction_status')
     exclude = ('last_deduction_dt', 'reset_dt', 'last_modified', 'ng_eb', 'ng_dg', 'ng_dt', 'dt')
+    list_display = ('flat', 'amt_left')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
@@ -94,6 +97,7 @@ class RechargeAdmin(admin.ModelAdmin):
     search_fields = ('=flat__tower', '=flat__flat')
     readonly_fields = ('flat', 'dt')
     exclude = ('last_deduction_dt', 'reset_dt', 'last_modified', 'ng_eb', 'ng_dg', 'ng_dt', 'dt')
+    list_display = ('flat', 'recharge', 'dt')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
@@ -101,6 +105,11 @@ class RechargeAdmin(admin.ModelAdmin):
             return self.model.objects.filter(flat__tower=qs[0], flat__flat=qs[1]).order_by('-dt'), False
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
         return queryset, use_distinct
+
+    def delete_model(self, request, i):
+        i.flat.consumption.amt_left -= dc(i.recharge)
+        i.flat.consumption.save()
+        i.delete()
 
 admin.site.register(Consumption, ConsumptionAdmin)
 admin.site.register(Recharge, RechargeAdmin)

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Sum, Q
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -110,7 +111,7 @@ class Consumption(models.Model):
 	ng_dt = models.DateTimeField(null=True, blank=True)
 
 	def __str__(self):
-		return '{} amt left {} eb {} and dg {}'.format(self.flat.owner, self.amt_left, self.eb, self.dg)
+		return '{}/{} Amount {}'.format(self.flat.tower, self.flat.flat, self.amt_left)
 
 
 	def getLastEB(self):
@@ -226,8 +227,9 @@ class MonthlyBill(models.Model):
 		return total
 
 	def get_TotalMaintance(self):
-		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge')) or 0
-		return float(m['mcharge__sum'])-self.get_OtherMaintanceTotal()
+		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Coalesce(Sum('mcharge'), 0))
+		print("m is",m['mcharge__sum'])
+		return float(m['mcharge__sum'] if m['mcharge__sum'] else 0)-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt')) or 0
@@ -376,15 +378,15 @@ class MessageTemplate(models.Model):
 
 	def SendSMS(self, text, flat):
 		URL = "https://www.txtguru.in/imobile/api.php"
-		PARAMS = {'username': 'orangecounty.csk',
-          'password': '86617614',
-          'source': 'OCAOAM',
-          'dmobile': '91{}'.format(flat.phone),
-          'message': text}
-		r = requests.get(url = URL, params = PARAMS, timeout=2)
-		if r.status_code == 200:
-			sm = SentMessage(flat=flat, m_type=self, text=text)
-			sm.save()
+		# PARAMS = {'username': 'orangecounty.csk',
+        #   'password': '86617614',
+        #   'source': 'OCAOAM',
+        #   'dmobile': '91{}'.format(flat.phone),
+        #   'message': text}
+		# r = requests.get(url = URL, params = PARAMS, timeout=2)
+		# if r.status_code == 200:
+		# 	sm = SentMessage(flat=flat, m_type=self, text=text)
+		# 	sm.save()
 
 
 class SentMessage(models.Model):
