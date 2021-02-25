@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load render_table from django_tables2 %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <main class="login-form">
+    <div class="cotainer">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    {% if flat %}
+                        <div class="row" style="margin: 10px 0;">
+                            <div class="col-6">
+                                <h4 class="text-center">Owner : {{ flat.owner }}</h4>
+                            </div>
+                            <div class="col-2">
+                                <h4 class="text-center">Tower : {{ flat.tower }}</h4>
+                            </div>
+                            <div class="col-2">
+                                <h4 class="text-center">Flat : {{ flat.flat }}</h4>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if filter %}
+                        <form action="" method="get" class="form form-inline">
+                            {% bootstrap_form filter.form layout='inline' %}
+                            {% bootstrap_button 'filter' %}
+                        </form>
+                    {% endif %}
+                    {% render_table table %}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

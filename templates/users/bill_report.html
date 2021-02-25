@@ -51,7 +51,7 @@
 				<hr/>
 				<div class="row">
 					<div class="col-4">
-						<pre><h5>Report Date : {{ report_date|date:"d/m/y" }}</h5></pre>
+						<pre><h5>Report Date : {{ now|date:"d/m/y" }}</h5></pre>
 						<pre><h5>Tower No    : {{ flat.tower|floatformat:0 }}</h5></pre>
 						<pre><h5>Name 	    : {{ flat.owner }}</h5></pre>
 					</div>

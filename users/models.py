@@ -227,13 +227,12 @@ class MonthlyBill(models.Model):
 		return total
 
 	def get_TotalMaintance(self):
-		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Coalesce(Sum('mcharge'), 0))
-		print("m is",m['mcharge__sum'])
+		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
 		return float(m['mcharge__sum'] if m['mcharge__sum'] else 0)-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt')) or 0
-		return float(f['famt__sum'])
+		return float(f['famt__sum'] if f['famt__sum'] else 0)
 
 	def Debits(self):
 		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)

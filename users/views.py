@@ -18,17 +18,22 @@ from django.views.generic import TemplateView
 from django.db.models import Sum, Count, Func, F
 from django.db import connection
 from django.contrib.auth.models import User
+from django_tables2 import SingleTableView
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 
 from datetime import datetime, timedelta
 
 from .models import *
 from resident.models import *
 from .forms import *
+from .tables import *
 import json
 import pytz
 import string 
 import random
 import dateutil.relativedelta
+from dateutil import parser
 
 
 class Homepage(TemplateView):
@@ -158,10 +163,12 @@ def getFlat(request):
 # 	return render(request, 'users/negative-flats.html', context)
 
 @method_decorator(StaffRequired, name='dispatch')
-class NegativeBalanceFlats(ListView):
+class NegativeBalanceFlats(SingleTableMixin, FilterView):
 	model = Consumption
-	template_name = "users/negative-flats.html"
-	queryset = Consumption.objects.filter(amt_left__lt = 0).order_by('flat__tower', 'flat__flat')
+	table_class = NegativeFlatsTable
+	template_name = "users/list_view.html"
+	queryset = Consumption.objects.filter().order_by('flat__tower', 'flat__flat')
+	filterset_class = FlatsFilter
 
 @method_decorator(StaffRequired, name="dispatch")
 class PositiveBalanceFlats(ListView):
@@ -191,21 +198,24 @@ def getBillView(request):
 	}
 	if request.method == "POST":
 		data = request.POST
-		if data.get('flat') and data.get('month') and data.get('flat'):
+		if data.get('flat') and data.get('month'):
 			try:
 				flat = Flats.objects.get(pk=data["flat"])
-				date = datetime.strptime(data['month'], "%Y-%m").date()
+				date = parser.parse(data['month']).date()
 				bill = MonthlyBill.objects.get(month=date.month, year=date.year, flat=flat)
 				context = {
 					"bill": bill,
 					"date": date,
-					"report_date": datetime.today(),
 					"flat": flat,
 				}
 				return render(request, 'users/bill_report.html', context)
 			except Exception as e:
+				context = {
+					"errors": []
+				}
 				print(e)
 				context["errors"].append(e)
+	print('context', context)
 	return render(request, 'users/getBill.html', context)
 
 
@@ -324,11 +334,10 @@ def FlatSMSReport(request):
 			edate = datetime.strptime(data['end-date'], "%Y-%m-%d").date() + timedelta(days=1)
 			sms = SentMessage.objects.filter(flat__id=data['id'], dt__range=(sdate, edate)).order_by('dt')
 			context = {
-				"recharge" : sms,
+				"table" : FlatSMSTable(sms),
 				"flat": Flats.objects.get(id=data['id']),
-				"recharge": True,
 			}
-			return render(request, 'users/smshistory.html', context)
+			return render(request, 'users/list_view.html', context)
 	return render(request, 'users/maintance_report.html', context)
 
 @method_decorator(StaffRequired, name='dispatch')
@@ -486,7 +495,7 @@ def SMSReport(request):
 			except Exception as e:
 				print(e)
 				context['error'] = e
-	return render(request, 'users/smshistory.html', context)
+	return render(request, 'users/smshistory1.html', context)
 
 @AdminRequired
 def SelectFlat(request):
