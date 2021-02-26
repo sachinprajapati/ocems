@@ -3,6 +3,17 @@
 {% load bootstrap4 %}
 
 {% block content %}
+    <style type="text/css">
+    .filter-form{
+        margin: 10px 0;
+    }
+    .filter-form .form-group{
+        margin-right: 5px;
+    }
+    .card{
+        padding: 0 20px;
+    }
+    </style>
     <main class="login-form">
     <div class="cotainer">
         <div class="row justify-content-center">
@@ -22,9 +33,9 @@
                         </div>
                     {% endif %}
                     {% if filter %}
-                        <form action="" method="get" class="form form-inline">
+                        <form action="" method="get" class="form form-inline filter-form">
                             {% bootstrap_form filter.form layout='inline' %}
-                            {% bootstrap_button 'filter' %}
+                            {% bootstrap_button 'filter' button_class='btn btn-outline-primary'  %}
                         </form>
                     {% endif %}
                     {% render_table table %}

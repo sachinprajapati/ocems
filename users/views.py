@@ -169,6 +169,7 @@ class NegativeBalanceFlats(SingleTableMixin, FilterView):
 	template_name = "users/list_view.html"
 	queryset = Consumption.objects.filter().order_by('flat__tower', 'flat__flat')
 	filterset_class = FlatsFilter
+	paginate_by = 50
 
 @method_decorator(StaffRequired, name="dispatch")
 class PositiveBalanceFlats(ListView):
