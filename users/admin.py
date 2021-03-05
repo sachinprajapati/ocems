@@ -65,6 +65,8 @@ class MaintanceAdmin(admin.ModelAdmin):
     search_fields = ('flat__tower', 'flat__flat')
     readonly_fields = ('flat', 'dt')
     list_ordering = ('-dt', )
+    list_filter = ('flat__tower', 'flat__flat')
+    list_display = ('flat', 'mrate', 'mcharge', 'famt', 'dt')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
