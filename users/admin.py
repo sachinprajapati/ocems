@@ -24,9 +24,10 @@ class FlatsAdmin(admin.ModelAdmin):
 
 class ReadingAdmin(admin.ModelAdmin):
     ordering = ['-dt']
-    list_filter = ('flat__tower', 'flat__flat')
+    list_filter = ('flat__tower', 'flat__flat', 'dt')
     readonly_fields = ('amt_left', 'dt')
     list_display = ('flat', 'eb', 'dg', 'amt_left', 'dt')
+
 
 class ConsumptionAdmin(admin.ModelAdmin):
     list_filter = ('flat__tower', 'flat__flat')   # simple list filters
