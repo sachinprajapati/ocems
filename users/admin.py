@@ -22,10 +22,11 @@ class FlatsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-@admin.register(Reading)
 class ReadingAdmin(admin.ModelAdmin):
     ordering = ['-dt']
-    search_fields = ['tower', 'flat']
+    list_filter = ('flat__tower', 'flat__flat')
+    readonly_fields = ('amt_left', 'dt')
+    list_display = ('flat', 'eb', 'dg', 'amt_left', 'dt')
 
 class ConsumptionAdmin(admin.ModelAdmin):
     list_filter = ('flat__tower', 'flat__flat')   # simple list filters
@@ -50,6 +51,8 @@ class BillAdmin(admin.ModelAdmin):
     ordering = ('-start_dt', 'flat__tower', 'flat__flat')
     search_fields = ('=flat__tower', '=flat__flat', "=month", "=year")
     readonly_fields = ('flat', 'month', 'year')
+    list_display = ('flat', 'start_eb', 'end_eb', 'start_dg', 'end_dg', 'opn_amt', 'cls_amt')
+
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
@@ -123,4 +126,5 @@ admin.site.register(SentMessage)
 admin.site.register(Debit, DebitAdmin)
 admin.site.register(OtherMaintance)
 admin.site.register(PowerCut)
+admin.site.register(Reading, ReadingAdmin)
 

@@ -59,7 +59,7 @@ class Flats(models.Model):
 	Type = models.PositiveIntegerField(choices=FLAT_TYPE, null=True)
 
 	def __str__(self):
-		return 'tower {} flat {} owner {}'.format(self.tower, self.flat, self.owner)
+		return '{}/{}'.format(self.tower, self.flat)
 
 	def getMaintance(self):
 		if self.tower == 17:
