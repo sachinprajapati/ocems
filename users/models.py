@@ -190,13 +190,13 @@ class MonthlyBill(models.Model):
 		return self.end_eb-self.start_eb
 
 	def get_ebprice(self):
-		return float(float(self.eb_price)*float(self.get_eb()))
+		return float(self.eb_price*self.get_eb())
 
 	def get_dg(self):
 		return self.end_dg-self.start_dg
 
 	def get_dgprice(self):
-		return float(self.dg_price)*float(self.get_dg())
+		return float(self.dg_price*self.get_dg())
 
 	def get_OtherMaintance(self):
 		if self.flat.tower==17:
@@ -227,12 +227,12 @@ class MonthlyBill(models.Model):
 		return total
 
 	def get_TotalMaintance(self):
-		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))
-		return float(m['mcharge__sum'] if m['mcharge__sum'] else 0)-self.get_OtherMaintanceTotal()
+		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))['mcharge__sum'] or 0
+		return float(m)-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
-		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt')) or 0
-		return float(f['famt__sum'] if f['famt__sum'] else 0)
+		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))['famt__sum'] or 0
+		return float(f)
 
 	def Debits(self):
 		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
@@ -246,8 +246,8 @@ class MonthlyBill(models.Model):
 		return float(t)
 
 	def get_RechargeInMonth(self):
-		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge')) or 0
-		return float(r['recharge__sum'])
+		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge'))['recharge__sum'] or 0
+		return r
 
 	def get_Adjustment(self):
 		return float(self.opn_amt)+self.get_RechargeInMonth()-self.get_TotalUsed()-float(self.cls_amt)

@@ -21,6 +21,10 @@ from django.conf.urls.static import static
 
 from django.contrib.auth import views as auth_views
 
+admin.site.site_header = 'OCAOA - EMS'                    # default: "Django Administration"
+admin.site.index_title = 'Features area'                 # default: "Site administration"
+admin.site.site_title = 'HTML title from adminsitration'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(template_name="homepage.html", redirect_authenticated_user=True) \
