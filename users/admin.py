@@ -103,7 +103,7 @@ class RechargeAdmin(admin.ModelAdmin):
     search_fields = ('=flat__tower', '=flat__flat')
     readonly_fields = ('flat', 'dt')
     exclude = ('last_deduction_dt', 'reset_dt', 'last_modified', 'ng_eb', 'ng_dg', 'ng_dt', 'dt')
-    list_display = ('flat', 'recharge', 'dt')
+    list_display = ('flat', 'recharge', 'amt_left', 'dt')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:

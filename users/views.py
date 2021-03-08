@@ -84,11 +84,6 @@ def Dashboard(request):
 		return render(request, 'resident/dashboard.html', {})
 
 
-# class RechargeView(CreateView):
-# 	template_name = "users/recharge.html"
-# 	form_class = RechargeForm
-
-
 @StaffRequired
 def RechargeView(request):
 	context = {}
@@ -105,6 +100,7 @@ def RechargeView(request):
 						"flat": flat,
 						'recharge_amt' : recharge,
 						"updated_bal" : prevamt+recharge,
+						"prevamt": prevamt,
 						"dt": timezone.localtime()
 					}
 				return render(request, "users/recharge_success.html", context)
@@ -127,6 +123,7 @@ def RechargeReceiptView(request):
 			"flat": fl,
 			'recharge_amt' : rch.recharge,
 			"prevamt" : rch.amt_left,
+			"updated_bal": rch.recharge+rch.amt_left,
 			"dt": rch.dt
 		}
 		return render(request, "users/recharge_success.html", context)
