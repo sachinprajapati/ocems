@@ -144,15 +144,15 @@ class Recharge(models.Model):
 	# def save(self, *args, **kwargs):
 	#     super(Recharge, self).save(*args, **kwargs)
 
-@receiver(post_save, sender=Recharge, dispatch_uid="update_stock_count")
-def update_stock(sender, instance, created, **kwargs):
-	if created and instance.flat.phone:
-		mt = MessageTemplate.objects.get(m_type=1)
-		text = mt.text.format(instance.flat.owner, instance.flat.tower, instance.flat.flat, instance.recharge, instance.flat.consumption.amt_left)
-		mt.sendMessage(text, instance.flat)
-		print("sending message to ", instance.flat)
-	else:
-		print("cannot send message to ", instance)
+# @receiver(post_save, sender=Recharge, dispatch_uid="update_stock_count")
+# def update_stock(sender, instance, created, **kwargs):
+# 	if created and instance.flat.phone:
+# 		mt = MessageTemplate.objects.get(m_type=1)
+# 		text = mt.text.format(instance.flat.owner, instance.flat.tower, instance.flat.flat, instance.recharge, instance.flat.consumption.amt_left)
+# 		mt.sendMessage(text, instance.flat)
+# 		print("sending message to ", instance.flat)
+# 	else:
+# 		print("cannot send message to ", instance)
 
 
 def get_days(start_dt, end_dt, month, year):
@@ -377,15 +377,18 @@ class MessageTemplate(models.Model):
 
 	def SendSMS(self, text, flat):
 		URL = "https://www.txtguru.in/imobile/api.php"
-		# PARAMS = {'username': 'orangecounty.csk',
-        #   'password': '86617614',
-        #   'source': 'OCAOAM',
-        #   'dmobile': '91{}'.format(flat.phone),
-        #   'message': text}
-		# r = requests.get(url = URL, params = PARAMS, timeout=2)
-		# if r.status_code == 200:
-		# 	sm = SentMessage(flat=flat, m_type=self, text=text)
-		# 	sm.save()
+		PARAMS = {'username': 'orangecounty.csk',
+          'password': '86617614',
+          'source': 'OCRWAA',
+          'dmobile': '91{}'.format(flat.phone),
+          'dltentityid': '1501653470000024196',
+          'dltheaderid': '1505161554417148705',
+          'dlttempid': '1507161742832607925',
+          'message': text}
+		r = requests.get(url = URL, params = PARAMS, timeout=2)
+		if r.status_code == 200:
+			sm = SentMessage(flat=flat, m_type=self, text=text)
+			sm.save()
 
 
 class SentMessage(models.Model):

@@ -38,6 +38,7 @@ class FlatsFilter(django_filters.FilterSet):
     class Meta:
         model = Consumption
         fields = ['flat__tower',"deduction_status"]
+        order_by = 'amt_left'
 
 class FlatSMSTable(tables.Table):
     dt = tables.Column(verbose_name="Date & Time")

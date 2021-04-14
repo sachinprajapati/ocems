@@ -50,19 +50,19 @@ def ReadEbAndDG():
 				ng_dg = cp.dg-float(cons.start_dg)
 				status = getConsumptionStatus(amt_left)
 				dtnow = timezone.localtime(timezone.now())
-				if is_connected() and dtnow.hour >= 7:
-					if amt_left < 500 and amt_left > 0 and cons.flat.phone:
-						mt = MessageTemplate.objects.get(m_type=2)
-						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-							text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, round(amt_left))
-							mt.SendSMS(text, cons.flat)
-							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
-					elif amt_left < 0 and cons.flat.phone and amt_left >= -1000:
-						mt = MessageTemplate.objects.get(m_type=3)
-						if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
-							text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, round(amt_left))
-							mt.SendSMS(text, cons.flat)
-							sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+				# if is_connected() and dtnow.hour >= 7:
+				# 	if amt_left < 500 and amt_left > 0 and cons.flat.phone:
+				# 		mt = MessageTemplate.objects.get(m_type=2)
+				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+				# 			text = mt.text.format(cons.flat.owner, cons.flat.flat, cons.flat.tower, round(amt_left))
+				# 			mt.SendSMS(text, cons.flat)
+				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
+				# 	elif amt_left < 0 and cons.flat.phone and amt_left >= -1000:
+				# 		mt = MessageTemplate.objects.get(m_type=3)
+				# 		if not SentMessage.objects.filter(flat=cons.flat, dt__year=dtnow.year, dt__month=dtnow.month, dt__day=dtnow.day, m_type=mt).exists():
+				# 			text = mt.text.format(cons.flat.owner, cons.flat.tower, cons.flat.flat, round(amt_left))
+				# 			mt.SendSMS(text, cons.flat)
+				# 			sms.append(SentMessage(flat=cons.flat, m_type=mt, text=text))
 				try:
 					Consumption.objects.filter(flat__id=cp.flat_id).update(amt_left=amt_left, ng_eb=ng_eb, ng_dg=ng_dg, \
 					eb=float(cp.eb), dg=float(cp.dg), deduction_status=2, status=status, last_deduction_dt=timezone.now())

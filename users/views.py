@@ -168,17 +168,6 @@ class NegativeBalanceFlats(SingleTableMixin, FilterView):
 	filterset_class = FlatsFilter
 	paginate_by = 50
 
-@method_decorator(StaffRequired, name="dispatch")
-class PositiveBalanceFlats(ListView):
-	model = Consumption
-	template_name = "users/negative-flats.html"
-	queryset = Consumption.objects.filter(amt_left__gt=0).order_by('flat__tower', 'flat__flat')
-
-@method_decorator(StaffRequired, name="dispatch")
-class NonDeductionFlats(ListView):
-	model = Consumption
-	template_name = "users/negative-flats.html"
-	queryset = Consumption.objects.filter(deduction_status=1).order_by('flat__tower', 'flat__flat')
 
 @method_decorator(StaffRequired, name="dispatch")
 class FlatPowerCut(ListView):
