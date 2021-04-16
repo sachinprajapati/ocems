@@ -94,8 +94,8 @@ class DebitAdmin(admin.ModelAdmin):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
         return queryset, use_distinct
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
 class RechargeAdmin(admin.ModelAdmin):
     list_filter = ('flat__tower', 'flat__flat')  # simple list filters
