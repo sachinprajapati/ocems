@@ -52,13 +52,16 @@ class BillAdmin(admin.ModelAdmin):
     ordering = ('-start_dt', 'flat__tower', 'flat__flat')
     search_fields = ('=flat__tower', '=flat__flat', "=month", "=year")
     readonly_fields = ('flat', 'month', 'year')
-    list_display = ('flat', 'start_eb', 'end_eb', 'start_dg', 'end_dg', 'opn_amt', 'cls_amt')
+    list_display = ('flat', 'get_Month', 'get_TotalUsed', 'get_RechargeInMonth', 'opn_amt', 'cls_amt', 'get_Adjustment')
 
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
             qs = search_term.split(',')
-            return self.model.objects.filter(flat__tower=qs[0], flat__flat=qs[1], month=qs[2], year=qs[3]), False
+            try:
+                return self.model.objects.filter(flat__tower=qs[0], flat__flat=qs[1], month=qs[2], year=qs[3]), False
+            except Exception as e:
+                return self.model.objects.filter(flat__tower=qs[0], flat__flat=qs[1]).order_by('-year', '-month'), False
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
         return queryset, use_distinct
 
