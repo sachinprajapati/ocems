@@ -17,6 +17,7 @@ import socket
 import calendar
 import requests
 from datetime import datetime
+from decimal import Decimal as dc
 
 def dt_now():
 	dt = timezone.now()
@@ -186,17 +187,20 @@ class MonthlyBill(models.Model):
 	def __str__(self):
 		return '{} month {} year {}'.format(self.flat, self.month, self.year)
 
+	def get_Month(self):
+		return '%s/%s' % (self.month,self.year)
+
 	def get_eb(self):
 		return self.end_eb-self.start_eb
 
 	def get_ebprice(self):
-		return float(self.eb_price*self.get_eb())
+		return self.eb_price*self.get_eb()
 
 	def get_dg(self):
 		return self.end_dg-self.start_dg
 
 	def get_dgprice(self):
-		return float(self.dg_price*self.get_dg())
+		return self.dg_price*self.get_dg()
 
 	def get_OtherMaintance(self):
 		if self.flat.tower==17:
@@ -224,15 +228,15 @@ class MonthlyBill(models.Model):
 		for i in om:
 			days = get_days(i.start_dt, i.end_dt, self.month, self.year)
 			total += ((self.flat.flat_size*i.price)*(12/365))*days
-		return total
+		return dc(total)
 
 	def get_TotalMaintance(self):
 		m = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('mcharge'))['mcharge__sum'] or 0
-		return float(m)-self.get_OtherMaintanceTotal()
+		return dc(m)-self.get_OtherMaintanceTotal()
 
 	def get_TotalFixed(self):
 		f = Maintance.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('famt'))['famt__sum'] or 0
-		return float(f)
+		return dc(f)
 
 	def Debits(self):
 		return Debit.objects.filter(dt__month=self.month, dt__year=self.year, flat=self.flat)
@@ -243,14 +247,14 @@ class MonthlyBill(models.Model):
 
 	def get_TotalUsed(self):
 		t = self.get_ebprice()+self.get_dgprice()+self.get_TotalMaintance()+self.get_TotalFixed()+self.TotalDebits()
-		return float(t)
+		return round(dc(t), 2)
 
 	def get_RechargeInMonth(self):
 		r = Recharge.objects.filter(flat=self.flat, dt__month=self.month, dt__year=self.year).aggregate(Sum('recharge'))['recharge__sum'] or 0
-		return r
+		return dc(r)
 
 	def get_Adjustment(self):
-		return float(self.opn_amt)+self.get_RechargeInMonth()-self.get_TotalUsed()-float(self.cls_amt)
+		return round(self.opn_amt+dc(self.get_RechargeInMonth())-self.get_TotalUsed()-self.cls_amt, 2)
 
 class Maintance(models.Model):
 	flat = models.ForeignKey(Flats, on_delete=models.CASCADE)
