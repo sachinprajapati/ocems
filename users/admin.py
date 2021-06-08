@@ -35,7 +35,7 @@ class ConsumptionAdmin(admin.ModelAdmin):
     search_fields = ('=flat__tower', '=flat__flat')
     readonly_fields = ('flat', 'meter_change_dt', 'deduction_status')
     exclude = ('last_deduction_dt', 'reset_dt', 'last_modified', 'ng_eb', 'ng_dg', 'ng_dt', 'dt')
-    list_display = ('flat', 'amt_left')
+    list_display = ('flat', 'eb', 'ng_eb', 'dg', 'ng_dg', 'amt_left')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
