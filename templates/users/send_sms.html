@@ -46,7 +46,7 @@ $(document).ready(function(){
 </script>
 <script>
 $(document).ready(function(){
-    $("#flat").bind("keyup", function(e) {
+    $("#flat,#tower").bind("keyup keypress keydown", function(e) {
         var code = e.keyCode || e.which;
         if (code != '9') {
             var tower = $("#tower").val();

@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="{% url 'users:homepage' %}">Home</a>
+  <a class="navbar-brand" href="{% url 'users:dashboard' %}">Home</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -70,6 +70,7 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" href="{% url 'users:debit' %}">Debit</a>
+            <a class="dropdown-item" href="{% url 'users:bulk_debit' %}">Bulk Debit</a>
             <a class="dropdown-item" href="{% url 'users:tower_list' %}">Tower List</a>
             <a class="dropdown-item" href="{% url 'users:meter_change' %}">Meter Change</a>
             <a class="dropdown-item" href="{% url 'users:bill_adjustment' %}">Bill Adjustment</a>

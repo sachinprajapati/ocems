@@ -7,6 +7,7 @@ from django.utils import timezone
 from .models import *
 from .tasks import *
 from ocems.settings import conn
+import csv
 
 
 class RechargeForm(ModelForm):
@@ -93,6 +94,20 @@ class MeterChangeForm(ModelForm):
 
 APPROVAL_CHOICES = [(i.pk, i.tower) for i in DeductionAmt.objects.filter().order_by("tower")]
 
-class MyForm(forms.Form):
-	towers = forms.MultipleChoiceField(choices=APPROVAL_CHOICES, widget=forms.CheckboxSelectMultiple())
-	message = forms.Textarea()
+# class MyForm(forms.Form):
+# 	towers = forms.MultipleChoiceField(choices=APPROVAL_CHOICES, widget=forms.CheckboxSelectMultiple())
+# 	message = forms.Textarea()
+
+class BulkDebitForm(forms.ModelForm):
+	file = forms.FileField()
+	remarks = forms.CharField(widget=forms.Textarea(attrs={'rows':3, 'cols': 4 }))
+	class Meta:
+		model = Debit
+		fields = ('remarks', )
+
+	def save(self):
+		m = super(BulkDebitForm, self).save(commit=False)
+		file = csv.reader(self.cleaned_data['file'])
+		dl = [Debit()]
+		return m
+

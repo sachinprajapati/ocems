@@ -79,7 +79,16 @@ def SessionFlat(function):
 @SessionFlat
 def Dashboard(request):
 	if request.user.is_staff:
-		return render(request, 'users/dashboard.html', {})
+		today = datetime.today()
+		rc = Recharge.objects.filter(dt__month=today.month, dt__year=today.year)
+		cn = Consumption.objects.filter(amt_left__lt=250, flat__status=1)
+		context = {
+			'today_recharge': rc.filter(dt__day=today.day).aggregate(Sum('recharge')).get('recharge__sum') or 0,
+			'month_recharge': rc.filter().aggregate(Sum('recharge')).get('recharge__sum') or 0,
+			'low_balance': cn.filter(amt_left__gte=0).count(),
+			'ng_balance': cn.filter(amt_left__lte=0).count(),
+		}
+		return render(request, 'users/dashboard.html', context)
 	else:
 		return render(request, 'resident/dashboard.html', {})
 
@@ -557,10 +566,19 @@ class ComplaintList(ListView):
 
 
 
-@staff_member_required
-def SendSmsToAll(request):
-	form = MyForm(request.POST or None)
-	if request.method == "POST":
-		if form.is_valid():
-			print(form.cleaned_data["towers"])
-	return render(request, 'users/send_sms_to_all.html', {'forms': form})
+# @staff_member_required
+# def SendSmsToAll(request):
+# 	form = MyForm(request.POST or None)
+# 	if request.method == "POST":
+# 		if form.is_valid():
+# 			print(form.cleaned_data["towers"])
+# 	return render(request, 'users/send_sms_to_all.html', {'forms': form})
+
+
+@method_decorator(AdminRequired, name="dispatch")
+class BulkDebit(SuccessMessageMixin, CreateView):
+	model = Debit
+	form_class = BulkDebitForm
+	template_name = 'users/form_view.html'
+	success_url = reverse_lazy('users:bulk_debit')
+	success_message = 'Successfully Debited'
