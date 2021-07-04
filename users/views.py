@@ -183,7 +183,7 @@ class FlatPowerCut(ListView):
 	model = PowerCut
 	template_name = "resident/power_cut.html"
 	dt = datetime.today()
-	queryset = PowerCut.objects.filter(dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by('flat__tower', 'flat__flat', '-dt')
+	queryset = PowerCut.objects.filter(dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by('-dt', 'flat__tower', 'flat__flat')
 
 
 @StaffRequired

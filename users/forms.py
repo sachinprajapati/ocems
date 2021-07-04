@@ -6,9 +6,10 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .models import *
 from .tasks import *
-from ocems.settings import conn
+from django.db import connections
 import csv
 
+conn = connections['scada']
 
 class RechargeForm(ModelForm):
 	class Meta:
@@ -29,7 +30,12 @@ class RechargeForm(ModelForm):
 		obj.amt_left += m.recharge
 		m.eb = obj.eb
 		m.dg = obj.dg
-		obj.status = getConsumptionStatus(obj.amt_left)
+		status = getConsumptionStatus(obj.amt_left)
+		if conn:
+			cur = conn.cursor()
+			cur.execute("update [TblConsumption] set status=%s where flat_pkey=%s", (status, m.flat.id))
+			conn.commit()
+		obj.status = status
 		obj.save()
 		m.save()
 		return m

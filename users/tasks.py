@@ -5,6 +5,7 @@ from datetime import timedelta, date, datetime
 from django.utils import timezone
 from collections import namedtuple
 from django.db import transaction
+from django.db.models import Avg, Case, Count, F, Max, Min
 
 from celery.task import periodic_task
 
@@ -81,13 +82,13 @@ def ReadEbAndDG():
 @periodic_task(run_every=crontab(minute='*/10', hour="10-19"))
 def WriteFlatStatus():
 	cur = conn.cursor()
-	c = Consumption.objects.filter(flat__status=1)
-	cur.executemany("update TblConsumption set status=? where flat_pkey=?", [(i.status, i.flat_id) for i in c])
+	#c = Consumption.objects.filter(flat__status=1)
+	cur.executemany("update TblConsumption set status=? where flat_pkey=?", Consumption.objects.filter(flat__status=1).values_list('status', 'flat_id').iterator())
 	conn.commit()
 
 
 
-@periodic_task(run_every=crontab(hour="*", minute=0))
+@periodic_task(run_every=crontab(hour="*/2", minute=0))
 def LogReading():
 	print("LogReading")
 	c = Consumption.objects.filter(flat__status=1)
@@ -115,24 +116,27 @@ def Billing():
 	create = []
 	dt = timezone.now()
 	next_dt = dt+timedelta(days=1)
-	bills = MonthlyBill.objects.filter(month=dt.month, year=dt.year)
+	bills = MonthlyBill.objects.filter(month=4, year=2021, flat__status=1)
 	# bills = MonthlyBill.objects.filter(month=2, year=2020, flat__status=1)
 	objs = []
+	r = Reading.objects.filter(dt__day=1, dt__month=5, dt__year=2021).values('flat_id').annotate(Max('amt_left'), Min('eb'), Min('dg'))
 	for b in bills:
-		reading = Reading.objects.filter(flat=b.flat, dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by("-dt")[0]
+		# reading = Reading.objects.filter(flat=b.flat, dt__day=dt.day, dt__month=dt.month, dt__year=dt.year).order_by("-dt")[0]
+		#reading = Reading.objects.filter(flat=b.flat, dt__day=1, dt__month=5, dt__year=2021).order_by("dt")[0]
 		da = DeductionAmt.objects.get(tower=b.flat.tower)
 		# MonthlyBill.objects.filter(id=b.id).update(end_eb=reading.eb, end_dg=reading.dg, cls_amt=reading.amt_left)
-		b.end_eb = reading.eb
-		b.end_dg = reading.dg
-		b.cls_amt = reading.amt_left
+		reading = r.get(flat_id=b.flat_id)
+		b.end_eb = reading['eb__min']
+		b.end_dg = reading['dg__min']
+		b.cls_amt = reading['amt_left__max']
 		objs.append(b)
-		create.append(MonthlyBill(flat=b.flat, month=next_dt.month, year=next_dt.year, start_eb=reading.eb, \
-			start_dg=reading.dg, end_eb=0, end_dg=0, opn_amt=reading.amt_left, cls_amt=0, eb_price=float(da.eb_price), \
+		create.append(MonthlyBill(flat=b.flat, month=5, year=2021, start_eb=reading['eb__min'], \
+			start_dg=reading['dg__min'], end_eb=0, end_dg=0, opn_amt=reading['amt_left__max'], cls_amt=0, eb_price=float(da.eb_price), \
 				dg_price=float(da.dg_price)))
 	MonthlyBill.objects.bulk_update(objs, ['end_eb', 'end_dg', 'cls_amt'])
 	MonthlyBill.objects.bulk_create(create)
 
-# @periodic_task(run_every=crontab(minute='*/5'))
+@periodic_task(run_every=crontab(minute='*/5'))
 def CheckLoad():
 	cur = conn.cursor()
 	dgsql = "SELECT dgstatus FROM TblDgStatus WHERE id=1"
@@ -141,19 +145,20 @@ def CheckLoad():
 	if dgstatus[0]:
 		print("dg is on")
 		sql = "SELECT flat_pkey, cur_load, status FROM [EMS].[dbo].[TblConsumption] where cur_load>max_load"
-		c = cur.execute(sql)
-		c = c.fetchall()
-		pc = []
-		if c:
-			pc = [PowerCut(flat_id=i[0], running_load=i[1]) for i in c]
-			cur.executemany("update [EMS].[dbo].[TblConsumption] set status=3 where flat_pkey=?", [[i[0]] for i in c])
-			conn.commit()
-			PowerCut.objects.bulk_create(pc)
-			time.sleep(60*2)
-			cur.executemany("update [EMS].[dbo].[TblConsumption] set status=? where flat_pkey=?", [[i[2], i[0]] for i in c])
-			conn.commit()
-		else:
-			print("nothing")
 	else:
-		print("dg is off")
+		print('Eb is on')
+		sql = "SELECT flat_pkey, cur_load, status FROM [EMS].[dbo].[TblConsumption] where cur_load>max_load+2"
+	c = cur.execute(sql)
+	c = c.fetchall()
+	pc = []
+	if c:
+		pc = [PowerCut(flat_id=i[0], running_load=i[1]) for i in c]
+		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=3 where flat_pkey=?", [[i[0]] for i in c])
+		conn.commit()
+		PowerCut.objects.bulk_create(pc)
+		time.sleep(60*2)
+		cur.executemany("update [EMS].[dbo].[TblConsumption] set status=? where flat_pkey=?", [[i[2], i[0]] for i in c])
+		conn.commit()
+	else:
+		print("nothing")
 
