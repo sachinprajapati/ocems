@@ -89,6 +89,7 @@ class DebitAdmin(admin.ModelAdmin):
     readonly_fields = ('flat', )
     list_ordering = ('-dt', 'flat__tower', 'flat__flat')
     search_fields = ('=flat__tower', '=flat__flat')
+    list_filter = ('dt', 'flat__tower', 'flat__flat')
     list_display = ('flat', 'remarks', 'dt')
 
     def get_search_results(self, request, queryset, search_term):
