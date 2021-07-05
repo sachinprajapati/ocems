@@ -91,7 +91,7 @@ class DebitAdmin(admin.ModelAdmin):
     list_ordering = ('-dt', 'flat__tower', 'flat__flat')
     search_fields = ('=flat__tower', '=flat__flat')
     list_filter = ('dt', 'flat__tower', 'flat__flat', 'flat__Type')
-    list_display = ('flat', 'remarks', 'dt')
+    list_display = ('flat', 'remarks', 'debit_amt', 'dt')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
