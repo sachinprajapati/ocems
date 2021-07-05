@@ -11,7 +11,7 @@ class FlatsAdmin(admin.ModelAdmin):
     exclude = ('tower', 'flat')
     readonly_fields = ('user',)
     list_display = ('tower', 'flat', 'owner', 'Type')
-    list_filter = ('flat__tower', 'flat__flat', 'Type')
+    list_filter = ('tower', 'flat', 'Type')
 
     def get_search_results(self, request, queryset, search_term):
         if search_term and ',' in search_term:
