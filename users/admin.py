@@ -35,7 +35,7 @@ class ConsumptionAdmin(admin.ModelAdmin):
     ordering = ('flat__tower', 'flat__flat')
     search_fields = ('=flat__tower', '=flat__flat')
     readonly_fields = ('flat', 'meter_change_dt', 'deduction_status')
-    exclude = ('last_deduction_dt', 'reset_dt', 'last_modified', 'ng_eb', 'ng_dg', 'ng_dt', 'dt')
+    exclude = ('reset_dt', 'last_modified', 'dt')
     list_display = ('flat', 'eb', 'ng_eb', 'dg', 'ng_dg', 'amt_left')
 
     def get_search_results(self, request, queryset, search_term):
