@@ -57,7 +57,7 @@ class Flats(models.Model):
 	basis = models.PositiveIntegerField(choices=BOOLEAN_BASIS, null=True, blank=True)
 	fixed_amt = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-	Type = models.PositiveIntegerField(choices=FLAT_TYPE, null=True)
+	Type = models.PositiveIntegerField(choices=FLAT_TYPE, null=True, blank=True)
 
 	def __str__(self):
 		return '{}/{}'.format(self.tower, self.flat)
